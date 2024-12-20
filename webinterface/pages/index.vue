@@ -1,7 +1,5 @@
 <template>
-    <NuxtLink to="/bans">
-        Bans
-    </NuxtLink>
+    <MainNavigation />
 </template>
 
 <script setup lang="ts">

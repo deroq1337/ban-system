@@ -1,4 +1,4 @@
-package com.github.lukas2o11.bansystem.bungee.data.ban;
+package com.github.lukas2o11.bansystem.bungee.data.ban.repository;
 
 import com.github.lukas2o11.bansystem.api.Ban;
 import com.github.lukas2o11.bansystem.api.BanType;
@@ -12,13 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface BanManager {
+public interface BanRepository {
 
-    @NotNull CompletableFuture<Void> banUser(@NotNull Ban ban, @NotNull String type);
+    @NotNull CompletableFuture<Void> banUser(@NotNull Ban ban);
 
-    @NotNull CompletableFuture<Void> unbanUser(@NotNull Unban unban);
-
-    @NotNull CompletableFuture<Void> unbanUserById(int banId, @NotNull String unbannedBy);
+    @NotNull CompletableFuture<Optional<String>> unbanUser(@NotNull Unban unban);
 
     @NotNull CompletableFuture<Boolean> isUserBanned(@NotNull UUID player, @NotNull BanType type);
 
@@ -31,4 +29,6 @@ public interface BanManager {
     @NotNull CompletableFuture<Optional<BanListEntry>> getBanByPlayerAsListEntry(@NotNull UUID player, @NotNull BanType type);
 
     @NotNull CompletableFuture<BanList> getBanListByPlayer(@NotNull UUID player, @NotNull BanType type);
+
+    @NotNull CompletableFuture<Optional<String>> getBanTypeById(int banId);
 }

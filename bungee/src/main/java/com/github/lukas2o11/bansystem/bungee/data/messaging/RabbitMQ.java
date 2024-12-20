@@ -1,9 +1,11 @@
 package com.github.lukas2o11.bansystem.bungee.data.messaging;
 
 import com.github.lukas2o11.bansystem.bungee.BanSystemPlugin;
+import com.github.lukas2o11.bansystem.bungee.data.ban.messaging.consumer.UnbanMessageConsumer;
 import com.rabbitmq.client.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class RabbitMQ {
 
@@ -13,9 +15,8 @@ public class RabbitMQ {
 
     private @NotNull final BanSystemPlugin plugin;
     private @NotNull final ConnectionFactory connectionFactory;
-
-    private @Nullable Connection connection;
-    private @Nullable Channel channel;
+    private Optional<Connection> connection = Optional.empty();
+    private Optional<Channel> channel = Optional.empty();
 
     public RabbitMQ(@NotNull BanSystemPlugin plugin) {
         this.plugin = plugin;
@@ -25,34 +26,43 @@ public class RabbitMQ {
     }
 
     public void connect() {
-        try {
-            this.connection = connectionFactory.newConnection();
-            this.channel = connection.createChannel();
 
-            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT, false, true, null);
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-            channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
-            channel.basicConsume(QUEUE_NAME, true, new UnbanMessageConsumer(plugin.getBanManager()), cancelCallback());
+        try {
+            this.connection = Optional.ofNullable(connectionFactory.newConnection());
+            if (connection.isEmpty()) {
+                throw new RuntimeException("Could not connect to RabbitMQ: ConnectionFactory returned nullish connection");
+            }
+
+            this.channel = Optional.ofNullable(connection.get().createChannel());
+            if (channel.isEmpty()) {
+                throw new RuntimeException("Could not create channel: Connection returned nullish channel");
+            }
+
+            Channel mqChannel = channel.get();
+            mqChannel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT, false, true, null);
+            mqChannel.queueDeclare(QUEUE_NAME, false, false, false, null);
+            mqChannel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
+            mqChannel.basicConsume(QUEUE_NAME, true, new UnbanMessageConsumer(plugin.getBanManager()), cancelCallback());
 
             System.out.println("RabbitMQ connected");
         } catch (Exception e) {
-            System.err.println("Error opening RabbitMQ connection: " + e.getMessage());
+            throw new RuntimeException("Error connecting to RabbitMQ", e);
         }
     }
 
     public void disconnect() {
         try {
-            if (channel != null) {
-                channel.close();
+            if (channel.isPresent()) {
+                channel.get().close();
             }
 
-            if (connection != null) {
-                connection.close();
+            if (connection.isPresent()) {
+                connection.get().close();
             }
 
             System.out.println("RabbitMQ connection closed");
         } catch (Exception e) {
-            System.err.println("Error closing RabbitMQ connection: " + e.getMessage());
+            throw new RuntimeException("Error closing RabbitMQ connection", e);
         }
     }
 

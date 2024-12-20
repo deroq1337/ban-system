@@ -1,6 +1,7 @@
-package com.github.lukas2o11.bansystem.bungee.data.messaging;
+package com.github.lukas2o11.bansystem.bungee.data.ban.messaging.consumer;
 
 import com.github.lukas2o11.bansystem.bungee.data.ban.BanManager;
+import com.github.lukas2o11.bansystem.bungee.data.ban.exceptions.MalformedUnbanMessageException;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
 import org.jetbrains.annotations.NotNull;
@@ -26,11 +27,10 @@ public class UnbanMessageConsumer implements DeliverCallback {
         try {
             banId = Integer.parseInt(message);
         } catch (NumberFormatException e) {
-            System.err.println("invalid unban message: " + message);
-            return;
+            throw new MalformedUnbanMessageException("Received invalid unban message: " + message);
         }
 
-        banManager.unbanUser(banId, "WEB_INTERFACE").thenAccept(o -> {
+        banManager.unbanUserById(banId, "WEB_INTERFACE").thenAccept(banType -> {
             System.out.println("Unbanned user via webinterface: " + banId);
         });
     }

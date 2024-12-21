@@ -1,4 +1,4 @@
-package com.github.deroq1337.bansystem.bungee.data.ban.commands;
+package com.github.deroq1337.bansystem.bungee.data.ban.command;
 
 import com.github.deroq1337.bansystem.api.Ban;
 import com.github.deroq1337.bansystem.api.BanType;
@@ -27,7 +27,7 @@ public abstract class BaseBanCommand extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(TextComponent.fromLegacy("§c/ban <user> <template>"));
+            sender.sendMessage(TextComponent.fromLegacy("§c/" + getName() + " <user> <template>"));
             return;
         }
 
@@ -39,7 +39,7 @@ public abstract class BaseBanCommand extends Command {
         String targetName = args[0];
         String templateId = args[1];
         if (targetName.isEmpty() || templateId.isEmpty()) {
-            sender.sendMessage(TextComponent.fromLegacy("§c/ban <user> <template>"));
+            sender.sendMessage(TextComponent.fromLegacy("§c/" + getName() + " <user> <template>"));
             return;
         }
 
@@ -80,15 +80,15 @@ public abstract class BaseBanCommand extends Command {
 
 
                     long now = System.currentTimeMillis();
-                    Ban ban = new Ban(targetUuid, templateId, getBanner(sender), now, now + optionalTemplate.get().getDuration());
+                    Ban ban = new Ban(targetUuid, templateId, getBannedBy(sender), now, now + optionalTemplate.get().getDuration());
 
                     return plugin.getBanManager().banUser(ban, type).thenApply(acknowledged -> {
                         if (!acknowledged) {
-                            sender.sendMessage(TextComponent.fromLegacy("§cSpieler konnte nicht gebannt werden. Versuche es erneut oder kontaktiere einen Administrator"));
+                            sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht erstellt werden. Versuche es erneut oder kontaktiere einen Administrator"));
                             return null;
                         }
 
-                        sender.sendMessage(TextComponent.fromLegacy("§aBann wurde erstellt"));
+                        sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde erstellt"));
                         return null;
                     });
                 });
@@ -100,7 +100,7 @@ public abstract class BaseBanCommand extends Command {
         });
     }
 
-    private @NotNull String getBanner(@NotNull CommandSender sender) {
+    private @NotNull String getBannedBy(@NotNull CommandSender sender) {
         return sender instanceof ProxiedPlayer
                 ? ((ProxiedPlayer) sender).getUniqueId().toString()
                 : sender.getName();

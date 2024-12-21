@@ -1,5 +1,9 @@
 package com.github.deroq1337.bansystem.bungee;
 
+import com.github.deroq1337.bansystem.bungee.data.ban.commands.BanCommand;
+import com.github.deroq1337.bansystem.bungee.data.ban.commands.MuteCommand;
+import com.github.deroq1337.bansystem.bungee.data.ban.commands.UnbanCommand;
+import com.github.deroq1337.bansystem.bungee.data.ban.commands.UnmuteCommand;
 import com.github.deroq1337.bansystem.bungee.data.database.MySQL;
 import com.github.deroq1337.bansystem.bungee.data.ban.BanManager;
 import com.github.deroq1337.bansystem.bungee.data.ban.DefaultBanManager;
@@ -9,6 +13,7 @@ import com.github.deroq1337.bansystem.bungee.data.template.BanTemplateManager;
 import com.github.deroq1337.bansystem.bungee.data.template.DefaultBanTemplateManager;
 import lombok.Getter;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.plugin.PluginManager;
 
 @Getter
 public class BanSystemPlugin extends Plugin {
@@ -32,6 +37,12 @@ public class BanSystemPlugin extends Plugin {
 
         this.prometheus = new Prometheus();
         prometheus.connect();
+
+        PluginManager pluginManager = getProxy().getPluginManager();
+        pluginManager.registerCommand(this, new BanCommand(this));
+        pluginManager.registerCommand(this, new MuteCommand(this));
+        pluginManager.registerCommand(this, new UnbanCommand(this));
+        pluginManager.registerCommand(this, new UnmuteCommand(this));
     }
 
     @Override

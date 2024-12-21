@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class MuteCommand extends BaseBanCommand {
 
-    public MuteCommand(@NotNull String name, @NotNull BanSystemPlugin plugin) {
-        super(name, plugin, BanType.MUTE);
+    public MuteCommand(@NotNull BanSystemPlugin plugin) {
+        super("mute", plugin, BanType.MUTE);
     }
 }

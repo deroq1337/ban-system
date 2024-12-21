@@ -7,8 +7,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class UnmuteCommand extends BaseUnbanCommand {
 
-    public UnmuteCommand(@NotNull String name, @NotNull BanSystemPlugin plugin) {
-        super(name, plugin, BanType.MUTE);
+    public UnmuteCommand(@NotNull BanSystemPlugin plugin) {
+        super("unmute", plugin, BanType.MUTE);
     }
 }
 

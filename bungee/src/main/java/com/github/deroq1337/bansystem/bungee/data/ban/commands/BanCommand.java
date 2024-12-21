@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BanCommand extends BaseBanCommand {
 
-    public BanCommand(@NotNull String name, @NotNull BanSystemPlugin plugin) {
-        super(name, plugin, BanType.BAN);
+    public BanCommand(@NotNull BanSystemPlugin plugin) {
+        super("ban", plugin, BanType.BAN);
     }
 }

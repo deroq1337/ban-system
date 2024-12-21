@@ -4,3 +4,8 @@ authors:
   - deroq
   - BukkitNews
 main: com.github.deroq1337.bansystem.bungee.BanSystemPlugin
+commands:
+  - ban
+  - mute
+  - unban
+  - unmute

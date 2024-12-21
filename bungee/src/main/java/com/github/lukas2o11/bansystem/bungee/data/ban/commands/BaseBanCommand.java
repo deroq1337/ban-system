@@ -93,8 +93,8 @@ public abstract class BaseBanCommand extends Command {
                     });
                 });
             });
-        }).exceptionally(ex -> {
-            ex.printStackTrace();
+        }).exceptionally(t -> {
+            t.printStackTrace();
             sender.sendMessage(TextComponent.fromLegacy("§cEin unerwarteter Fehler ist aufgetreten. Versuche es erneut oder kontaktiere einen Administrator."));
             return null;
         });

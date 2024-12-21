@@ -18,9 +18,9 @@ public interface BanManager {
 
     @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull BanType type);
 
-    @NotNull CompletableFuture<Void> unbanUser(@NotNull Unban unban);
+    @NotNull CompletableFuture<Boolean> unbanUser(@NotNull Unban unban);
 
-    @NotNull CompletableFuture<Void> unbanUserById(int banId, @NotNull String unbannedBy);
+    @NotNull CompletableFuture<Boolean> unbanUserById(int banId, @NotNull String unbannedBy);
 
     @NotNull CompletableFuture<Boolean> isUserBanned(@NotNull UUID player, @NotNull BanType type);
 

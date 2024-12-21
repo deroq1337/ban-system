@@ -5,7 +5,7 @@ import com.github.lukas2o11.bansystem.api.BanType;
 import com.github.lukas2o11.bansystem.api.Unban;
 import com.github.lukas2o11.bansystem.bungee.BanSystemPlugin;
 import com.github.lukas2o11.bansystem.bungee.data.ban.exceptions.BanNotFoundException;
-import com.github.lukas2o11.bansystem.bungee.data.ban.exceptions.UnbanException;
+import com.github.lukas2o11.bansystem.bungee.data.ban.exceptions.EmptyBanTypeException;
 import com.github.lukas2o11.bansystem.bungee.data.ban.metrics.BanMetric;
 import com.github.lukas2o11.bansystem.bungee.data.ban.metrics.UnbanMetric;
 import com.github.lukas2o11.bansystem.bungee.data.ban.repository.BanRepository;
@@ -41,27 +41,35 @@ public class DefaultBanManager implements BanManager {
     }
 
     @Override
-    public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull String type) {
-        return repository.banUser(ban).thenCompose(v -> {
-            return banMetric.export(ban.getPlayer().toString(), ban.getTemplateId(), ban.getBannedBy(), type);
+    public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull BanType type) {
+        return repository.banUser(ban).thenApply(acknowledged -> {
+            banMetric.export(ban.getPlayer().toString(), ban.getTemplateId(), ban.getBannedBy(), type.toString());
+            return acknowledged;
+        }).exceptionally(t -> {
+            System.err.println("Error banning user: " + t);
+            return false;
         });
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> unbanUser(@NotNull Unban unban) {
-        return repository.unbanUser(unban).thenCompose(banType -> {
+    public @NotNull CompletableFuture<Boolean> unbanUser(@NotNull Unban unban) {
+        return repository.unbanUser(unban).thenApply(banType -> {
             if (banType.isEmpty()) {
-                throw new UnbanException("Warning on unbanUser: banType is empty");
+                throw new EmptyBanTypeException("Error unbanning user: banType is empty");
             }
 
-            return banType
-                    .map(type -> unbanMetric.export(unban.player().toString(), unban.unbannedBy(), type))
-                    .orElseThrow(() -> new UnbanException("Warning on unbanUser: banType is empty"));
+            return banType.map(type -> {
+                unbanMetric.export(unban.player().toString(), unban.unbannedBy(), type);
+                return true;
+            }).orElseThrow(() -> new EmptyBanTypeException("Warning on unbanUser: banType is empty"));
+        }).exceptionally(t -> {
+            System.err.println("Error unbanning user: " + t);
+            return false;
         });
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> unbanUserById(int banId, @NotNull String unbannedBy) {
+    public @NotNull CompletableFuture<Boolean> unbanUserById(int banId, @NotNull String unbannedBy) {
         return getBanById(banId).thenCompose(optionalBan -> {
             Unban unban = optionalBan
                     .map(ban -> new Unban(ban.getPlayer(), banId, unbannedBy, System.currentTimeMillis()))

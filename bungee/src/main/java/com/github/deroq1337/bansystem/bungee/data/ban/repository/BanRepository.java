@@ -16,7 +16,7 @@ public interface BanRepository {
 
     @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban);
 
-    @NotNull CompletableFuture<Optional<String>> unbanUser(@NotNull Unban unban);
+    @NotNull CompletableFuture<Optional<BanType>> unbanUser(@NotNull Unban unban);
 
     @NotNull CompletableFuture<Boolean> isUserBanned(@NotNull UUID player, @NotNull BanType type);
 
@@ -30,7 +30,7 @@ public interface BanRepository {
 
     @NotNull CompletableFuture<BanList> getBanListByPlayer(@NotNull UUID player, @NotNull BanType type);
 
-    @NotNull CompletableFuture<Optional<String>> getBanTypeById(int banId);
+    @NotNull CompletableFuture<Optional<BanType>> getBanTypeById(int banId);
 
     @NotNull CompletableFuture<Integer> reapExpiredBans();
 }

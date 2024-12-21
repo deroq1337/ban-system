@@ -1,8 +1,9 @@
-package com.github.deroq1337.bansystem.bungee.data.ban.commands;
+package com.github.deroq1337.bansystem.bungee.data.ban.command;
 
-import com.github.deroq1337.bansystem.api.Ban;
 import com.github.deroq1337.bansystem.api.BanType;
+import com.github.deroq1337.bansystem.api.Unban;
 import com.github.deroq1337.bansystem.bungee.BanSystemPlugin;
+import com.github.deroq1337.bansystem.bungee.data.ban.notify.UnbanNotify;
 import com.github.deroq1337.bansystem.bungee.data.ban.utils.UUIDFetcher;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -13,12 +14,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class BaseBanCommand extends Command {
+public abstract class BaseUnbanCommand extends Command {
 
     private @NotNull final BanSystemPlugin plugin;
     private @NotNull final BanType type;
 
-    public BaseBanCommand(@NotNull String name, @NotNull BanSystemPlugin plugin, @NotNull BanType type) {
+    public BaseUnbanCommand(@NotNull String name, @NotNull BanSystemPlugin plugin, @NotNull BanType type) {
         super(name);
         this.plugin = plugin;
         this.type = type;
@@ -26,25 +27,24 @@ public abstract class BaseBanCommand extends Command {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(TextComponent.fromLegacy("§c/ban <user> <template>"));
+        if (args.length < 1) {
+            sender.sendMessage(TextComponent.fromLegacy("§c/" + getName() + " <user>"));
             return;
         }
 
-        if (!sender.hasPermission("bansystem.ban")) {
+        if (!sender.hasPermission("bansystem.unban")) {
             sender.sendMessage(TextComponent.fromLegacy("§cKeine Rechte!"));
             return;
         }
 
         String targetName = args[0];
-        String templateId = args[1];
-        if (targetName.isEmpty() || templateId.isEmpty()) {
-            sender.sendMessage(TextComponent.fromLegacy("§c/ban <user> <template>"));
+        if (targetName.isEmpty()) {
+            sender.sendMessage(TextComponent.fromLegacy("§c/" + getName() + " <user>"));
             return;
         }
 
         if (sender.getName().equalsIgnoreCase(targetName)) {
-            sender.sendMessage(TextComponent.fromLegacy("§cDu kannst dich nicht selber bestrafen"));
+            sender.sendMessage(TextComponent.fromLegacy("§cDu kannst nicht mit dir selber interagieren"));
             return;
         }
 
@@ -57,38 +57,32 @@ public abstract class BaseBanCommand extends Command {
             UUID targetUuid = optionalUuid.get();
             if (sender instanceof ProxiedPlayer
                     && ((ProxiedPlayer) sender).getUniqueId().equals(targetUuid)) {
-                sender.sendMessage(TextComponent.fromLegacy("§cDu kannst dich nicht selber bestrafen"));
+                sender.sendMessage(TextComponent.fromLegacy("§cDu kannst nicht mit dir selber interagieren"));
                 return CompletableFuture.completedFuture(null);
             }
 
             return plugin.getBanManager().isUserBanned(targetUuid, type).thenCompose(banned -> {
-                if (banned) {
-                    sender.sendMessage(TextComponent.fromLegacy("§cDieser Spieler wurde bereits bestraft"));
+                if (!banned) {
+                    sender.sendMessage(TextComponent.fromLegacy("§cFür diesen Spieler liegt aktuell keine Strafe vor"));
                     return CompletableFuture.completedFuture(null);
                 }
 
-                return plugin.getTemplateManager().getTemplate(templateId).thenCompose(optionalTemplate -> {
-                    if (optionalTemplate.isEmpty()) {
-                        sender.sendMessage(TextComponent.fromLegacy("§cTemplate nicht gefunden"));
+                return plugin.getBanManager().getBanByPlayer(targetUuid, type).thenCompose(ban -> {
+                    if (ban.isEmpty()) {
+                        sender.sendMessage(TextComponent.fromLegacy("§cEs konnte keine Strafe für diesen Spieler gefunden werden"));
                         return CompletableFuture.completedFuture(null);
                     }
 
-                    if (optionalTemplate.get().getBanType() != type) {
-                        sender.sendMessage(TextComponent.fromLegacy("§cTemplate kann nicht genutzt werden"));
-                        return CompletableFuture.completedFuture(null);
-                    }
+                    Unban unban = new Unban(targetUuid, ban.get().getId(), getUnbannedBy(sender), System.currentTimeMillis());
 
-
-                    long now = System.currentTimeMillis();
-                    Ban ban = new Ban(targetUuid, templateId, getBanner(sender), now, now + optionalTemplate.get().getDuration());
-
-                    return plugin.getBanManager().banUser(ban, type).thenApply(acknowledged -> {
+                    return plugin.getBanManager().unbanUser(unban).thenApply(acknowledged -> {
                         if (!acknowledged) {
-                            sender.sendMessage(TextComponent.fromLegacy("§cSpieler konnte nicht gebannt werden. Versuche es erneut oder kontaktiere einen Administrator"));
+                            sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht aufgehoben werden. Versuche es erneut oder kontaktiere einen Administrator"));
                             return null;
                         }
 
-                        sender.sendMessage(TextComponent.fromLegacy("§aBann wurde erstellt"));
+                        new UnbanNotify(unban).broadcast();
+                        sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde aufgehoben"));
                         return null;
                     });
                 });
@@ -100,7 +94,7 @@ public abstract class BaseBanCommand extends Command {
         });
     }
 
-    private @NotNull String getBanner(@NotNull CommandSender sender) {
+    private @NotNull String getUnbannedBy(@NotNull CommandSender sender) {
         return sender instanceof ProxiedPlayer
                 ? ((ProxiedPlayer) sender).getUniqueId().toString()
                 : sender.getName();

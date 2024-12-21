@@ -3,6 +3,7 @@ package com.github.deroq1337.bansystem.bungee.data.ban.command;
 import com.github.deroq1337.bansystem.api.BanType;
 import com.github.deroq1337.bansystem.api.Unban;
 import com.github.deroq1337.bansystem.bungee.BanSystemPlugin;
+import com.github.deroq1337.bansystem.bungee.data.ban.notify.UnbanNotify;
 import com.github.deroq1337.bansystem.bungee.data.ban.utils.UUIDFetcher;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -80,6 +81,7 @@ public abstract class BaseUnbanCommand extends Command {
                             return null;
                         }
 
+                        new UnbanNotify(unban).broadcast();
                         sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde aufgehoben"));
                         return null;
                     });

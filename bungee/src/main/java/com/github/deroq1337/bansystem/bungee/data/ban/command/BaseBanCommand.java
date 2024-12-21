@@ -1,6 +1,7 @@
 package com.github.deroq1337.bansystem.bungee.data.ban.command;
 
 import com.github.deroq1337.bansystem.api.Ban;
+import com.github.deroq1337.bansystem.api.BanTemplate;
 import com.github.deroq1337.bansystem.api.BanType;
 import com.github.deroq1337.bansystem.bungee.BanSystemPlugin;
 import com.github.deroq1337.bansystem.bungee.data.ban.utils.UUIDFetcher;
@@ -73,14 +74,15 @@ public abstract class BaseBanCommand extends Command {
                         return CompletableFuture.completedFuture(null);
                     }
 
-                    if (optionalTemplate.get().getType() != type) {
+                    BanTemplate template = optionalTemplate.get();
+                    if (template.getType() != type) {
                         sender.sendMessage(TextComponent.fromLegacy("§cTemplate kann nicht genutzt werden"));
                         return CompletableFuture.completedFuture(null);
                     }
 
 
                     long now = System.currentTimeMillis();
-                    Ban ban = new Ban(targetUuid, templateId, getBannedBy(sender), now, now + optionalTemplate.get().getDuration());
+                    Ban ban = new Ban(targetUuid, templateId, getBannedBy(sender), now, now + template.getDuration());
 
                     return plugin.getBanManager().banUser(ban, type).thenApply(acknowledged -> {
                         if (!acknowledged) {
@@ -88,6 +90,7 @@ public abstract class BaseBanCommand extends Command {
                             return null;
                         }
 
+                        onSuccess(targetUuid, ban, template);
                         sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde erstellt"));
                         return null;
                     });
@@ -99,6 +102,8 @@ public abstract class BaseBanCommand extends Command {
             return null;
         });
     }
+
+    public abstract void onSuccess(@NotNull UUID targetUuid, @NotNull Ban ban, @NotNull BanTemplate template);
 
     private @NotNull String getBannedBy(@NotNull CommandSender sender) {
         return sender instanceof ProxiedPlayer

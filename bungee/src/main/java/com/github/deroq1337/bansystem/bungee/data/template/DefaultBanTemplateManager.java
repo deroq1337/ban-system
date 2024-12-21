@@ -1,10 +1,10 @@
 package com.github.deroq1337.bansystem.bungee.data.template;
 
+import com.github.deroq1337.bansystem.api.BanTemplate;
 import com.github.deroq1337.bansystem.api.BanType;
 import com.github.deroq1337.bansystem.bungee.BanSystemPlugin;
 import com.github.deroq1337.bansystem.bungee.data.database.MySQL;
 import com.github.deroq1337.bansystem.bungee.data.database.result.DBRow;
-import com.github.deroq1337.bansystem.bungee.data.template.models.BanTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

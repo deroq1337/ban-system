@@ -42,7 +42,7 @@ public class DefaultBanManager implements BanManager {
                 .expireAfterAccess(10, TimeUnit.MINUTES)
                 .build(new CacheLoader<>() {
                     @Override
-                    public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) throws Exception {
+                    public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) {
                         return getBanByPlayerFromDatabase(key, BanType.BAN);
                     }
                 }));
@@ -51,7 +51,7 @@ public class DefaultBanManager implements BanManager {
                 .expireAfterAccess(10, TimeUnit.MINUTES)
                 .build(new CacheLoader<>() {
                     @Override
-                    public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) throws Exception {
+                    public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) {
                         return getBanByPlayerFromDatabase(key, BanType.MUTE);
                     }
                 }));

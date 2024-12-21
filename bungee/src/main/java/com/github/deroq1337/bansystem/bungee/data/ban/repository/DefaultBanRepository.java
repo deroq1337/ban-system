@@ -16,6 +16,11 @@ import java.util.function.Function;
 
 public class DefaultBanRepository implements BanRepository {
 
+    private static final String BAN_QUERY = "INSERT INTO bansystem_bans" +
+            "(player, templateId, bannedBy, bannedAt, expiresAt, active) " +
+            "VALUES" +
+            "(?, ?, ?, ?, ?, ?);";
+
     private static final String UNBAN_UPDATE_QUERY = "UPDATE bansystem_bans " +
             "SET active = false " +
             "WHERE id = ?;";
@@ -107,7 +112,8 @@ public class DefaultBanRepository implements BanRepository {
 
     @Override
     public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban) {
-        return CompletableFuture.completedFuture(null);
+        return mySQL.update(BAN_QUERY, ban.getPlayer().toString(), ban.getTemplateId(), ban.getBannedBy(), ban.getBannedAt(), ban.getExpiresAt(), true)
+                .thenApply(count -> count == 1);
     }
 
     @Override

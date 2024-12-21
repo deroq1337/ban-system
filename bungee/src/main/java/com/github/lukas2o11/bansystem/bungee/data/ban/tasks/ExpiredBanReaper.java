@@ -1,28 +1,30 @@
 package com.github.lukas2o11.bansystem.bungee.data.ban.tasks;
 
-
-import com.github.lukas2o11.bansystem.bungee.data.database.MySQL;
+import com.github.lukas2o11.bansystem.bungee.BanSystemPlugin;
+import com.github.lukas2o11.bansystem.bungee.data.ban.repository.BanRepository;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.scheduler.ScheduledTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
-public class ExpiredBanReaper {
+public class ExpiredBanReaper implements Runnable {
 
-    private static final String REAP_EXPIRED_BANS_QUERY = "UPDATE bansystem_bans " +
-            "SET active = false " +
-            "WHERE expiresAt < ? AND active = true;";
+    private @NotNull final BanRepository repository;
+    private @NotNull final ScheduledTask task;
 
-    private @NotNull final MySQL mySQL;
-
-    public ExpiredBanReaper(@NotNull MySQL mySQL) {
-        this.mySQL = mySQL;
+    public ExpiredBanReaper(@NotNull BanSystemPlugin plugin, @NotNull BanRepository repository) {
+        this.repository = repository;
+        this.task = ProxyServer.getInstance().getScheduler().schedule(plugin, this, 10, 10, TimeUnit.MINUTES);
     }
 
-    public CompletableFuture<Void> reapExpireBans() {
-        long currentTime = System.currentTimeMillis();
+    public void cancel() {
+        task.cancel();
+    }
 
-        return mySQL.executeTransaction(connection -> {
-            return mySQL.update(connection, REAP_EXPIRED_BANS_QUERY, currentTime);
-        }).thenAccept(v -> System.out.println("Expired bans successfully reapplied"));
+    @Override
+    public void run() {
+        repository.reapExpiredBans().thenAccept(reapedCount ->
+                System.out.println("Reaped " + reapedCount + " bans"));
     }
 }

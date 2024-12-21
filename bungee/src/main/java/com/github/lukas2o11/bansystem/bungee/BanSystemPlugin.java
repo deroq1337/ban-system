@@ -36,6 +36,7 @@ public class BanSystemPlugin extends Plugin {
 
     @Override
     public void onDisable() {
+        banManager.stopExpiredBanReaper();
         prometheus.disconnect();
         rabbitMQ.disconnect();
         mySQL.disconnect();

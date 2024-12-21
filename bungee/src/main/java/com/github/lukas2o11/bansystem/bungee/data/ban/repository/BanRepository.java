@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface BanRepository {
 
-    @NotNull CompletableFuture<Void> banUser(@NotNull Ban ban);
+    @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban);
 
     @NotNull CompletableFuture<Optional<String>> unbanUser(@NotNull Unban unban);
 
@@ -31,4 +31,6 @@ public interface BanRepository {
     @NotNull CompletableFuture<BanList> getBanListByPlayer(@NotNull UUID player, @NotNull BanType type);
 
     @NotNull CompletableFuture<Optional<String>> getBanTypeById(int banId);
+
+    @NotNull CompletableFuture<Integer> reapExpiredBans();
 }

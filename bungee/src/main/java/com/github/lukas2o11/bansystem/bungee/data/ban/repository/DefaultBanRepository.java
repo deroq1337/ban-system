@@ -71,6 +71,11 @@ public class DefaultBanRepository implements BanRepository {
             "INNER JOIN bansystem_templates bt ON bt.id = bb.templateId " +
             "WHERE bb.id = ?;";
 
+    private static final String REAP_EXPIRED_BANS_QUERY = "UPDATE bansystem_bans " +
+            "SET active = false " +
+            "WHERE expiresAt < ? " +
+            "AND active = true;";
+
     private @NotNull
     final MySQL mySQL;
 
@@ -104,7 +109,7 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> banUser(@NotNull Ban ban) {
+    public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban) {
         return CompletableFuture.completedFuture(null);
     }
 
@@ -217,6 +222,11 @@ public class DefaultBanRepository implements BanRepository {
         });
     }
 
+    @Override
+    public @NotNull CompletableFuture<Integer> reapExpiredBans() {
+        return mySQL.update(REAP_EXPIRED_BANS_QUERY, System.currentTimeMillis());
+    }
+
     private <T> @NotNull List<T> mapBansFromRows(List<DBRow> rows, Function<DBRow, T> mapper) {
         return rows.stream()
                 .map(mapper)
@@ -230,7 +240,8 @@ public class DefaultBanRepository implements BanRepository {
                 row.getValue("templateId", String.class),
                 row.getValue("bannedBy", String.class),
                 row.getValue("bannedAt", Long.class),
-                row.getValue("expiresAt", Long.class)
+                row.getValue("expiresAt", Long.class),
+                row.getValue("active", Boolean.class)
         );
     }
 

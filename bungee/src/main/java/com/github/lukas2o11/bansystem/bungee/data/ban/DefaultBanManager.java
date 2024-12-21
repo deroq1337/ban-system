@@ -12,6 +12,7 @@ import com.github.lukas2o11.bansystem.bungee.data.ban.repository.BanRepository;
 import com.github.lukas2o11.bansystem.bungee.data.ban.models.BanList;
 import com.github.lukas2o11.bansystem.bungee.data.ban.models.BanListEntry;
 import com.github.lukas2o11.bansystem.bungee.data.ban.repository.DefaultBanRepository;
+import com.github.lukas2o11.bansystem.bungee.data.ban.tasks.ExpiredBanReaper;
 import com.github.lukas2o11.bansystem.bungee.data.prometheus.PrometheusMetric;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,21 +22,28 @@ import java.util.concurrent.CompletableFuture;
 public class DefaultBanManager implements BanManager {
 
     private @NotNull final BanRepository repository;
-    private @NotNull final PrometheusMetric banMetricExporter;
-    private @NotNull final PrometheusMetric unbanMetricExporter;
+    private @NotNull final PrometheusMetric banMetric;
+    private @NotNull final PrometheusMetric unbanMetric;
+    private @NotNull final ExpiredBanReaper expiredReaper;
 
     // TODO: cache
 
     public DefaultBanManager(@NotNull BanSystemPlugin plugin) {
         this.repository = new DefaultBanRepository(plugin);
-        this.banMetricExporter = new BanMetric();
-        this.unbanMetricExporter = new UnbanMetric();
+        this.banMetric = new BanMetric();
+        this.unbanMetric = new UnbanMetric();
+        this.expiredReaper = new ExpiredBanReaper(plugin, repository);
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> banUser(@NotNull Ban ban, @NotNull String type) {
+    public void stopExpiredBanReaper() {
+        expiredReaper.cancel();
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull String type) {
         return repository.banUser(ban).thenCompose(v -> {
-            return banMetricExporter.export(ban.getPlayer().toString(), ban.getTemplateId(), ban.getBannedBy(), type);
+            return banMetric.export(ban.getPlayer().toString(), ban.getTemplateId(), ban.getBannedBy(), type);
         });
     }
 
@@ -47,7 +55,7 @@ public class DefaultBanManager implements BanManager {
             }
 
             return banType
-                    .map(type -> unbanMetricExporter.export(unban.player().toString(), unban.unbannedBy(), type))
+                    .map(type -> unbanMetric.export(unban.player().toString(), unban.unbannedBy(), type))
                     .orElseThrow(() -> new UnbanException("Warning on unbanUser: banType is empty"));
         });
     }

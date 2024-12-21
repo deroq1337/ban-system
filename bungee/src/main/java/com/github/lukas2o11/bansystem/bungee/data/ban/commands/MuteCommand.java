@@ -4,9 +4,9 @@ import com.github.lukas2o11.bansystem.api.BanType;
 import com.github.lukas2o11.bansystem.bungee.BanSystemPlugin;
 import org.jetbrains.annotations.NotNull;
 
-public class BanCommand extends BaseBanCommand {
+public class MuteCommand extends BaseBanCommand {
 
-    public BanCommand(@NotNull String name, @NotNull BanSystemPlugin plugin) {
-        super(name, plugin, BanType.BAN);
+    public MuteCommand(@NotNull String name, @NotNull BanSystemPlugin plugin) {
+        super(name, plugin, BanType.MUTE);
     }
 }

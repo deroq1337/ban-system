@@ -39,31 +39,32 @@ public class MySQL {
         });
     }
 
-    public @NotNull CompletableFuture<Void> update(@NotNull String sql, @NotNull Object... params) {
-        return dataSource.map(ds -> CompletableFuture.runAsync(() -> {
+    public @NotNull CompletableFuture<Integer> update(@NotNull String sql, @NotNull Object... params) {
+        return dataSource.map(ds -> CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 PreparedStatement statement = connection.prepareStatement(sql);
                 bindParams(statement, params);
-                statement.executeUpdate();
+                return statement.executeUpdate();
             } catch (SQLException e) {
                 System.err.println("Error executing update: " + e.getMessage());
+                return -1;
             }
         })).orElseThrow(() -> new RuntimeException("Error creating query: no MySQL connection established"));
     }
 
-    public @NotNull CompletableFuture<Void> update(@NotNull Connection connection, @NotNull String sql, @NotNull Object... params) {
-        return CompletableFuture.runAsync(() -> {
+    public @NotNull CompletableFuture<Integer> update(@NotNull Connection connection, @NotNull String sql, @NotNull Object... params) {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 PreparedStatement statement = connection.prepareStatement(sql);
                 bindParams(statement, params);
-                statement.executeUpdate();
+                return statement.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    public @NotNull CompletableFuture<Void> executeTransaction(@NotNull Function<Connection, CompletableFuture<Void>> consumer) {
+    public @NotNull CompletableFuture<Void> executeTransaction(@NotNull Function<Connection, CompletableFuture<Integer>> consumer) {
         return dataSource.map(ds -> CompletableFuture.runAsync(() -> {
             try (Connection connection = getConnection()) {
                 connection.setAutoCommit(false);

@@ -1,6 +1,6 @@
 name: BanSystem
 version: 1.0
 authors:
-  - lukas2o11
+  - deroq
   - BukkitNews
-main: com.github.lukas2o11.bansystem.bungee.BanSystemPlugin
+main: com.github.deroq1337.bansystem.bungee.BanSystemPlugin

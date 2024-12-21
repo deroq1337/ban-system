@@ -67,13 +67,13 @@ public abstract class BaseBanCommand extends Command {
                     return CompletableFuture.completedFuture(null);
                 }
 
-                return plugin.getTemplateManager().getTemplate(templateId).thenCompose(optionalTemplate -> {
+                return plugin.getTemplateManager().getTemplateById(templateId).thenCompose(optionalTemplate -> {
                     if (optionalTemplate.isEmpty()) {
                         sender.sendMessage(TextComponent.fromLegacy("§cTemplate nicht gefunden"));
                         return CompletableFuture.completedFuture(null);
                     }
 
-                    if (optionalTemplate.get().getBanType() != type) {
+                    if (optionalTemplate.get().getType() != type) {
                         sender.sendMessage(TextComponent.fromLegacy("§cTemplate kann nicht genutzt werden"));
                         return CompletableFuture.completedFuture(null);
                     }

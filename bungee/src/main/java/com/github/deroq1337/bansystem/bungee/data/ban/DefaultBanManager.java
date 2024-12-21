@@ -14,10 +14,15 @@ import com.github.deroq1337.bansystem.bungee.data.ban.models.BanListEntry;
 import com.github.deroq1337.bansystem.bungee.data.ban.repository.DefaultBanRepository;
 import com.github.deroq1337.bansystem.bungee.data.ban.tasks.ExpiredBanReaper;
 import com.github.deroq1337.bansystem.bungee.data.prometheus.PrometheusMetric;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultBanManager implements BanManager {
 
@@ -25,14 +30,31 @@ public class DefaultBanManager implements BanManager {
     private @NotNull final PrometheusMetric banMetric;
     private @NotNull final PrometheusMetric unbanMetric;
     private @NotNull final ExpiredBanReaper expiredReaper;
-
-    // TODO: cache
+    private @NotNull final Map<BanType, LoadingCache<UUID, CompletableFuture<Optional<Ban>>>> caches = new ConcurrentHashMap<>();
 
     public DefaultBanManager(@NotNull BanSystemPlugin plugin) {
         this.repository = new DefaultBanRepository(plugin);
         this.banMetric = new BanMetric();
         this.unbanMetric = new UnbanMetric();
         this.expiredReaper = new ExpiredBanReaper(plugin, repository);
+
+        caches.put(BanType.BAN, CacheBuilder.newBuilder()
+                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) throws Exception {
+                        return getBanByPlayerFromDatabase(key, BanType.BAN);
+                    }
+                }));
+
+        caches.put(BanType.MUTE, CacheBuilder.newBuilder()
+                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) throws Exception {
+                        return getBanByPlayerFromDatabase(key, BanType.MUTE);
+                    }
+                }));
     }
 
     @Override
@@ -44,6 +66,7 @@ public class DefaultBanManager implements BanManager {
     public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull BanType type) {
         return repository.banUser(ban).thenApply(acknowledged -> {
             banMetric.export(ban.getPlayer().toString(), ban.getTemplateId(), ban.getBannedBy(), type.toString());
+            getCache(type).invalidate(ban.getPlayer());
             return acknowledged;
         }).exceptionally(t -> {
             System.err.println("Error banning user: " + t);
@@ -59,7 +82,8 @@ public class DefaultBanManager implements BanManager {
             }
 
             return banType.map(type -> {
-                unbanMetric.export(unban.player().toString(), unban.unbannedBy(), type);
+                unbanMetric.export(unban.player().toString(), unban.unbannedBy(), type.toString());
+                getCache(type).invalidate(unban.player());
                 return true;
             }).orElseThrow(() -> new EmptyBanTypeException("Warning on unbanUser: banType is empty"));
         }).exceptionally(t -> {
@@ -90,6 +114,10 @@ public class DefaultBanManager implements BanManager {
 
     @Override
     public @NotNull CompletableFuture<Optional<Ban>> getBanByPlayer(@NotNull UUID player, @NotNull BanType type) {
+        return getCache(type).getUnchecked(player);
+    }
+
+    private @NotNull CompletableFuture<Optional<Ban>> getBanByPlayerFromDatabase(@NotNull UUID player, @NotNull BanType type) {
         return repository.getBanByPlayer(player, type);
     }
 
@@ -106,5 +134,10 @@ public class DefaultBanManager implements BanManager {
     @Override
     public @NotNull CompletableFuture<BanList> getBanListByPlayer(@NotNull UUID player, @NotNull BanType type) {
         return repository.getBanListByPlayer(player, type);
+    }
+
+    private @NotNull LoadingCache<UUID, CompletableFuture<Optional<Ban>>> getCache(@NotNull BanType type) {
+        return Optional.ofNullable(caches.get(type))
+                .orElseThrow(() -> new NoSuchElementException("No cache for type '" + type + "' was found"));
     }
 }

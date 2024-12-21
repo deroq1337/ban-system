@@ -10,10 +10,7 @@ import com.github.deroq1337.bansystem.bungee.data.database.MySQL;
 import com.github.deroq1337.bansystem.bungee.data.database.result.DBRow;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -114,7 +111,7 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<String>> unbanUser(@NotNull Unban unban) {
+    public @NotNull CompletableFuture<Optional<BanType>> unbanUser(@NotNull Unban unban) {
         int banId = unban.banId();
         return mySQL.executeTransaction(connection -> mySQL.update(connection, UNBAN_UPDATE_QUERY, banId).thenCompose(o ->
                 mySQL.update(
@@ -210,15 +207,15 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<String>> getBanTypeById(int banId) {
+    public @NotNull CompletableFuture<Optional<BanType>> getBanTypeById(int banId) {
         return mySQL.query(GET_BAN_TYPE_QUERY, banId).thenApply(result -> {
             if (result.rows().isEmpty()) {
                 System.out.println("Type for ban '" + banId + "' not found");
                 return Optional.empty();
             }
 
-            return result.rows().getFirst()
-                    .getValueOptional("type", String.class);
+            return result.rows().getFirst().getValueOptional("type", String.class)
+                    .map(type -> BanType.valueOf(type.toUpperCase(Locale.ENGLISH)));
         });
     }
 

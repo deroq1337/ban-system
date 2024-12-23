@@ -20,8 +20,8 @@ import java.util.Optional;
 @ApplicationScope
 public class DefaultBanService implements BanService {
 
-    private @NotNull final BanRepository repository;
-    private @NotNull final UnbanMessagePublisher publisher;
+    private final @NotNull BanRepository repository;
+    private final @NotNull UnbanMessagePublisher publisher;
 
     @Autowired
     public DefaultBanService(@NotNull BanRepository repository, @NotNull UnbanMessagePublisher publisher) {

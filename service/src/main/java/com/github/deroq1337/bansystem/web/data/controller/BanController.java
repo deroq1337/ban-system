@@ -20,7 +20,7 @@ import java.util.Optional;
 )
 public class BanController {
 
-    private @NotNull final BanService service;
+    private final @NotNull BanService service;
 
     @Autowired
     public BanController(@NotNull BanService service) {

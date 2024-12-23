@@ -13,8 +13,8 @@ public class RabbitMQ {
     private static final String QUEUE_NAME = "unbans";
     private static final String ROUTING_KEY = "unban.player";
 
-    private @NotNull final BanSystemPlugin plugin;
-    private @NotNull final ConnectionFactory connectionFactory;
+    private final @NotNull BanSystemPlugin plugin;
+    private final @NotNull ConnectionFactory connectionFactory;
     private Optional<Connection> connection = Optional.empty();
     private Optional<Channel> channel = Optional.empty();
 

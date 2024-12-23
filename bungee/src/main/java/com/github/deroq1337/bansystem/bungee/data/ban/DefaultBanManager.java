@@ -26,11 +26,11 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultBanManager implements BanManager {
 
-    private @NotNull final BanRepository repository;
-    private @NotNull final PrometheusMetric banMetric;
-    private @NotNull final PrometheusMetric unbanMetric;
-    private @NotNull final ExpiredBanReaper expiredReaper;
-    private @NotNull final Map<BanType, LoadingCache<UUID, CompletableFuture<Optional<Ban>>>> caches = new ConcurrentHashMap<>();
+    private final @NotNull BanRepository repository;
+    private final @NotNull PrometheusMetric banMetric;
+    private final @NotNull PrometheusMetric unbanMetric;
+    private final @NotNull ExpiredBanReaper expiredReaper;
+    private final @NotNull Map<BanType, LoadingCache<UUID, CompletableFuture<Optional<Ban>>>> caches = new ConcurrentHashMap<>();
 
     public DefaultBanManager(@NotNull BanSystemPlugin plugin) {
         this.repository = new DefaultBanRepository(plugin);

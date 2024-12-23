@@ -14,9 +14,9 @@ import java.util.UUID;
 public class Ban {
 
     private @Nullable Integer id;
-    private @NotNull final UUID player;
-    private @NotNull final String templateId;
-    private @NotNull final String bannedBy;
+    private final @NotNull UUID player;
+    private final @NotNull String templateId;
+    private final @NotNull String bannedBy;
     private final long bannedAt;
     private final long expiresAt;
     private boolean active;

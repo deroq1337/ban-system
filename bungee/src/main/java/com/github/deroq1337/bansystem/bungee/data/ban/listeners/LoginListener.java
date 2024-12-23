@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 @RequiredArgsConstructor
 public class LoginListener implements Listener {
 
-    private @NotNull final BanSystemPlugin plugin;
+    private final @NotNull BanSystemPlugin plugin;
 
     @EventHandler
     public void onLogin(LoginEvent event) {

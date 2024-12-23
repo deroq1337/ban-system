@@ -16,8 +16,8 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class BaseUnbanCommand extends Command {
 
-    private @NotNull final BanSystemPlugin plugin;
-    private @NotNull final BanType type;
+    private final @NotNull BanSystemPlugin plugin;
+    private final @NotNull BanType type;
 
     public BaseUnbanCommand(@NotNull String name, @NotNull BanSystemPlugin plugin, @NotNull BanType type) {
         super(name);

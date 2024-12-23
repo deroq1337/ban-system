@@ -18,7 +18,7 @@ import java.util.Optional;
 @Log4j2
 public class UnbanMessagePublisher implements RabbitMQMessagePublisher {
 
-    private @NotNull final RabbitTemplate template;
+    private final @NotNull RabbitTemplate template;
 
     @Value("${rabbitmq.exchange_name}")
     private String exchangeName;

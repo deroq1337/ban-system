@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 public class ExpiredBanReaper implements Runnable {
 
-    private @NotNull final BanRepository repository;
-    private @NotNull final ScheduledTask task;
+    private final @NotNull BanRepository repository;
+    private final @NotNull ScheduledTask task;
 
     public ExpiredBanReaper(@NotNull BanSystemPlugin plugin, @NotNull BanRepository repository) {
         this.repository = repository;

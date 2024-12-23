@@ -13,8 +13,8 @@ public class UnbanMetric implements PrometheusMetric {
 
     private static final String METRIC_NAME = "bansystem_unbans_total";
 
-    private @NotNull final List<String> labelNames;
-    private @NotNull final Counter counter;
+    private final @NotNull List<String> labelNames;
+    private final @NotNull Counter counter;
 
     public UnbanMetric() {
         this.labelNames = Arrays.asList("player", "unbannedBy", "type");

@@ -14,8 +14,8 @@ public class MuteMessage {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
-    private @NotNull final Ban ban;
-    private @NotNull final BanTemplate template;
+    private final @NotNull Ban ban;
+    private final @NotNull BanTemplate template;
 
     public @NotNull BaseComponent build() {
         return TextComponent.fromLegacy("§cDu wurdest " + formatDuration() + " aus dem Chat gebannt!\n" +

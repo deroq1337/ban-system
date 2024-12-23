@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 @EqualsAndHashCode
 public class BanTemplate {
 
-    private @NotNull final String id;
+    private final @NotNull String id;
     private @NotNull BanType type;
     private @NotNull String reason;
     private long duration;

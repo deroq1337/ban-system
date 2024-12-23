@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultBanTemplateManager implements BanTemplateManager {
 
-    private @NotNull final BanTemplateRepository repository;
-    private @NotNull final LoadingCache<String, CompletableFuture<Optional<BanTemplate>>> templateCache;
+    private final @NotNull BanTemplateRepository repository;
+    private final @NotNull LoadingCache<String, CompletableFuture<Optional<BanTemplate>>> templateCache;
 
     public DefaultBanTemplateManager(@NotNull BanSystemPlugin plugin) {
         this.repository = new DefaultBanTemplateRepository(plugin);

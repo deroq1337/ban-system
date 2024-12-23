@@ -11,6 +11,6 @@ import org.jetbrains.annotations.NotNull;
 public class ExceptionResponse {
 
     private final int statusCode;
-    private @NotNull final String message;
+    private final @NotNull String message;
     private final long timestamp = System.currentTimeMillis();
 }

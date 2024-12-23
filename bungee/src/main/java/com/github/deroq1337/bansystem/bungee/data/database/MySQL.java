@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 public class MySQL {
 
-    private @NotNull final HikariConfig config;
+    private final @NotNull HikariConfig config;
     private Optional<HikariDataSource> dataSource = Optional.empty();
 
     public MySQL() {

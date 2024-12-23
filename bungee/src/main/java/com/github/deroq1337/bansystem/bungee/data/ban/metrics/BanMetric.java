@@ -13,8 +13,8 @@ public class BanMetric implements PrometheusMetric {
 
     private static final String METRIC_NAME = "bansystem_bans_total";
 
-    private @NotNull final List<String> labelNames;
-    private @NotNull final Counter counter;
+    private final @NotNull List<String> labelNames;
+    private final @NotNull Counter counter;
 
     public BanMetric() {
         this.labelNames = Arrays.asList("player", "templateId", "bannedBy", "type");

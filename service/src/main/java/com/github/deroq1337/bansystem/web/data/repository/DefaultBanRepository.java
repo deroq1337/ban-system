@@ -36,7 +36,7 @@ public class DefaultBanRepository implements BanRepository {
     private static final String COUNT_QUERY = "SELECT COUNT(*) " +
             "FROM bansystem_bans;";
 
-    private @NotNull final JdbcTemplate jdbcTemplate;
+    private final @NotNull JdbcTemplate jdbcTemplate;
 
     @Autowired
     public DefaultBanRepository(@NotNull JdbcTemplate jdbcTemplate) {

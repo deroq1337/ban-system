@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 @RequiredArgsConstructor
 public class UnbanNotify implements StaffNotify {
 
-    private @NotNull final Unban unban;
+    private final @NotNull Unban unban;
 
     @Override
     public @NotNull String getMessage() {

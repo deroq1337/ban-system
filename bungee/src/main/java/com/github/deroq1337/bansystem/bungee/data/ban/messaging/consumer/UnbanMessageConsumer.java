@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public class UnbanMessageConsumer implements DeliverCallback {
 
-    private @NotNull final BanManager banManager;
+    private final @NotNull BanManager banManager;
 
     public UnbanMessageConsumer(@NotNull BanManager banManager) {
         this.banManager = banManager;

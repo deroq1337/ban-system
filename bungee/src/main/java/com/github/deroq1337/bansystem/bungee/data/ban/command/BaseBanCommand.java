@@ -18,8 +18,8 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class BaseBanCommand extends Command {
 
-    private @NotNull final BanSystemPlugin plugin;
-    private @NotNull final BanType type;
+    private final @NotNull BanSystemPlugin plugin;
+    private final @NotNull BanType type;
 
     public BaseBanCommand(@NotNull String name, @NotNull BanSystemPlugin plugin, @NotNull BanType type) {
         super(name);

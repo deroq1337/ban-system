@@ -12,7 +12,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 public class BanListEntry extends Ban {
 
-    private @NotNull final String reason;
+    private final @NotNull String reason;
 
     public BanListEntry(@NotNull Integer id, @NotNull UUID player, @NotNull String templateId, @NotNull String bannedBy, long bannedAt, long expiresAt, boolean active, @NotNull String reason) {
         super(id, player, templateId, bannedBy, bannedAt, expiresAt, active);

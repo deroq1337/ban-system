@@ -24,7 +24,7 @@ Das Datenmodell sieht wie folgt aus:
 ```java
 public class BanTemplate {
 
-    private @NotNull final String id;
+    private final @NotNull String id;
     private @NotNull BanType type;
     private @NotNull String reason;
     private long duration;
@@ -37,10 +37,10 @@ Ein Ban ist eine Bestrafung eines Users und kann zwei verschiedene Typen haben: 
 ```java
 public class Ban {
 
-    private @NotNull final Integer id;
-    private @NotNull final UUID player;
-    private @NotNull final String templateId;
-    private @NotNull final String bannedBy;
+    private final @NotNull Integer id;
+    private final @NotNull UUID player;
+    private final @NotNull String templateId;
+    private final @NotNull String bannedBy;
     private final long bannedAt;
     private final long expiresAt;
     private boolean active;

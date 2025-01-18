@@ -82,7 +82,6 @@ public abstract class BaseBanCommand extends Command {
                         return CompletableFuture.completedFuture(null);
                     }
 
-
                     long now = System.currentTimeMillis();
                     Ban ban = new Ban(targetUuid, templateId, getBannedBy(sender), now, now + template.getDuration());
 

@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public interface PrometheusMetric {
+public abstract class PrometheusMetric {
 
-    default CompletableFuture<Void> export(String... labelValues) {
+    public CompletableFuture<Void> export(String... labelValues) {
         return CompletableFuture.runAsync(() -> {
             if (labelValues.length != getLabelNames().size()) {
                 throw new IllegalStateException("Error exporting metric " + getClass() + ": labelValues length is not equal to labelNames size");
@@ -20,7 +20,7 @@ public interface PrometheusMetric {
         });
     }
 
-    @NotNull Counter getCounter();
+    public abstract @NotNull Counter getCounter();
 
-    @NotNull List<String> getLabelNames();
+    public abstract @NotNull List<String> getLabelNames();
 }

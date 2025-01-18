@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-public class BanMetric implements PrometheusMetric {
+public class BanMetric extends PrometheusMetric {
 
     private static final String METRIC_NAME = "bansystem_bans_total";
 

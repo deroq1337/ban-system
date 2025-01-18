@@ -15,6 +15,7 @@ public class RabbitMQ {
 
     private final @NotNull BanSystemPlugin plugin;
     private final @NotNull ConnectionFactory connectionFactory;
+
     private Optional<Connection> connection = Optional.empty();
     private Optional<Channel> channel = Optional.empty();
 
@@ -67,8 +68,6 @@ public class RabbitMQ {
     }
 
     private CancelCallback cancelCallback() {
-        return consumerTag -> {
-            System.out.println("Cancelled consumer: " + consumerTag);
-        };
+        return consumerTag -> System.out.println("Cancelled consumer: " + consumerTag);
     }
 }

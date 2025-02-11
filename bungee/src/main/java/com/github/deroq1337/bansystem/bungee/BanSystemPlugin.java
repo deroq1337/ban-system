@@ -1,9 +1,9 @@
 package com.github.deroq1337.bansystem.bungee;
 
-import com.github.deroq1337.bansystem.bungee.data.ban.commands.BanCommand;
-import com.github.deroq1337.bansystem.bungee.data.ban.commands.MuteCommand;
-import com.github.deroq1337.bansystem.bungee.data.ban.commands.UnbanCommand;
-import com.github.deroq1337.bansystem.bungee.data.ban.commands.UnmuteCommand;
+import com.github.deroq1337.bansystem.bungee.data.ban.command.BanCommand;
+import com.github.deroq1337.bansystem.bungee.data.ban.command.MuteCommand;
+import com.github.deroq1337.bansystem.bungee.data.ban.command.UnbanCommand;
+import com.github.deroq1337.bansystem.bungee.data.ban.command.UnmuteCommand;
 import com.github.deroq1337.bansystem.bungee.data.ban.listeners.ChatListener;
 import com.github.deroq1337.bansystem.bungee.data.ban.listeners.LoginListener;
 import com.github.deroq1337.bansystem.bungee.data.database.MySQL;
@@ -52,7 +52,6 @@ public class BanSystemPlugin extends Plugin {
 
     @Override
     public void onDisable() {
-        banManager.stopExpiredBanReaper();
         prometheus.disconnect();
         rabbitMQ.disconnect();
         mySQL.disconnect();

@@ -24,9 +24,9 @@ public class LoginListener implements Listener {
             }
 
             Ban ban = optionalBan.get();
-            plugin.getTemplateManager().getTemplateById(ban.getTemplateId()).thenAccept(template -> {
+            plugin.getTemplateManager().getTemplateById(ban.templateId()).thenAccept(template -> {
                 if (template.isEmpty()) {
-                    throw new BanTemplateNotFoundException("Error during login: BanTemplate with id '" + ban.getId() + "' was not found");
+                    throw new BanTemplateNotFoundException("Error during login: BanTemplate with id '" + ban.id() + "' was not found");
                 }
 
                 event.setCancelled(true);

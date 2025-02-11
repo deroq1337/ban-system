@@ -17,37 +17,38 @@ import java.util.function.Function;
 public class DefaultBanRepository implements BanRepository {
 
     private static final String BAN_QUERY = "INSERT INTO bansystem_bans" +
-            "(player, templateId, bannedBy, bannedAt, expiresAt, active) " +
+            "(player, templateId, bannedBy, bannedAt, expiresAt) " +
             "VALUES" +
-            "(?, ?, ?, ?, ?, ?);";
-
-    private static final String UNBAN_UPDATE_QUERY = "UPDATE bansystem_bans " +
-            "SET active = false " +
-            "WHERE id = ?;";
+            "(?, ?, ?, ?, ?);";
 
     private static final String UNBAN_INSERT_QUERY = "INSERT INTO bansystem_unbans" +
             "(player, banId, unbannedBy, unbannedAt) " +
             "VALUES" +
             "(?, ?, ?, ?);";
 
-    private static final String IS_BANNED_QUERY = "SELECT bb.id, bt.type" +
-            "FROM bansystem_bans bb" +
+    private static final String IS_BANNED_QUERY = "SELECT bb.id, bt.type " +
+            "FROM bansystem_bans bb " +
             "INNER JOIN bansystem_templates bt ON bt.id = bb.templateId " +
-            "WHERE player = ? " +
-            "AND bb.active = true " +
+            "LEFT JOIN bansystem_unbans bu ON bu.banId = bb.id " +
+            "WHERE bb.player = ? " +
             "AND bt.type = ? " +
+            "AND bu.banId IS NULL " +
+            "AND bb.expiresAt < CURRENT_TIMESTAMP " +
             "LIMIT 1;";
 
     private static final String GET_BAN_BY_ID_QUERY = "SELECT *" +
             "FROM bansystem_bans " +
             "WHERE id = ?;";
 
-    private static final String GET_BAN_QUERY = "SELECT bb.*, bt.type" +
+    private static final String GET_BAN_BY_PLAYER_QUERY = "SELECT bb.*, bt.type" +
             "FROM bansystem_bans bb " +
             "INNER JOIN bansystem_templates bt ON bt.id = bb.templateId " +
-            "WHERE player = ? " +
-            "AND bb.active = true " +
-            "AND bt.type = ?;";
+            "LEFT JOIN bansystem_unbans bu ON bu.banId = bb.id " +
+            "WHERE bb.player = ? " +
+            "AND bt.type = ? " +
+            "AND bu.banId IS NULL " +
+            "AND bb.expiresAt < CURRENT_TIMESTAMP " +
+            "LIMIT 1;";
 
     private static final String GET_BANS_QUERY = "SELECT bb.*, bt.type" +
             "FROM bansystem_bans bb " +
@@ -58,9 +59,12 @@ public class DefaultBanRepository implements BanRepository {
     private static final String GET_BAN_ENTRY_QUERY = "SELECT bb.*, bt.reason, bt.duration, bt.type " +
             "FROM bansystem_bans bb " +
             "INNER JOIN bansystem_templates bt ON bt.id = bb.templateId " +
+            "LEFT JOIN bansystem_unbans bu ON bu.banId = bb.id " +
             "WHERE bb.player = ? " +
-            "AND bb.active = true " +
-            "AND bt.type = ?;";
+            "AND bt.type = ? " +
+            "AND bu.banId IS NULL " +
+            "AND bb.expiresAt < CURRENT_TIMESTAMP " +
+            "LIMIT 1;";
 
     private static final String GET_BAN_ENTRIES_QUERY = "SELECT bb.*, bt.reason, bt.duration, bt.type " +
             "FROM bansystem_bans bb " +
@@ -73,13 +77,7 @@ public class DefaultBanRepository implements BanRepository {
             "INNER JOIN bansystem_templates bt ON bt.id = bb.templateId " +
             "WHERE bb.id = ?;";
 
-    private static final String REAP_EXPIRED_BANS_QUERY = "UPDATE bansystem_bans " +
-            "SET active = false " +
-            "WHERE expiresAt < ? " +
-            "AND active = true;";
-
-    private @NotNull
-    final MySQL mySQL;
+    private final @NotNull MySQL mySQL;
 
     public DefaultBanRepository(@NotNull BanSystemPlugin plugin) {
         this.mySQL = plugin.getMySQL();
@@ -94,7 +92,6 @@ public class DefaultBanRepository implements BanRepository {
                 "bannedBy VARCHAR(36) NOT NULL, " +
                 "bannedAt BIGINT NOT NULL, " +
                 "expiresAt BIGINT NOT NULL, " +
-                "active BOOLEAN NOT NULL, " + // active flag for history, so we do not need an extra table for this
                 "PRIMARY KEY(id), " +
                 "FOREIGN KEY(templateId) REFERENCES bansystem_templates(id)" +
                 ");").join();
@@ -112,18 +109,15 @@ public class DefaultBanRepository implements BanRepository {
 
     @Override
     public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban) {
-        return mySQL.update(BAN_QUERY, ban.getPlayer().toString(), ban.getTemplateId(), ban.getBannedBy(), ban.getBannedAt(), ban.getExpiresAt(), true)
+        return mySQL.update(BAN_QUERY, ban.player().toString(), ban.templateId(), ban.bannedBy(), ban.bannedAt(), ban.expiresAt())
                 .thenApply(count -> count == 1);
     }
 
     @Override
     public @NotNull CompletableFuture<Optional<BanType>> unbanUser(@NotNull Unban unban) {
         int banId = unban.banId();
-        return mySQL.executeTransaction(connection -> mySQL.update(connection, UNBAN_UPDATE_QUERY, banId).thenCompose(o ->
-                mySQL.update(
-                        connection, UNBAN_INSERT_QUERY,
-                        unban.player().toString(), banId, unban.unbannedBy(), unban.unbannedAt()))
-        ).thenCompose(v -> getBanTypeById(banId));
+        return mySQL.update(UNBAN_INSERT_QUERY, unban.player().toString(), banId, unban.unbannedBy(), unban.unbannedAt())
+                .thenCompose(v -> getBanTypeById(banId));
     }
 
     @Override
@@ -139,7 +133,6 @@ public class DefaultBanRepository implements BanRepository {
             }
 
             if (result.rows().size() > 1) {
-                System.out.println("More than 1 active ban found for id '" + banId + "'");
                 return Optional.empty();
             }
 
@@ -149,7 +142,7 @@ public class DefaultBanRepository implements BanRepository {
 
     @Override
     public @NotNull CompletableFuture<Optional<Ban>> getBanByPlayer(@NotNull UUID player, @NotNull BanType type) {
-        return getBanFromQuery(player, type, this::banFromRow, GET_BAN_QUERY);
+        return getBanFromQuery(player, type, this::banFromRow, GET_BAN_BY_PLAYER_QUERY);
     }
 
     @Override
@@ -183,12 +176,10 @@ public class DefaultBanRepository implements BanRepository {
         return mySQL.query(query, player.toString(), type.toString()).thenApply(result -> {
             List<DBRow> rows = result.rows();
             if (rows.isEmpty()) {
-                System.out.println("No active ban found for player '" + player + "' with type '" + type + "'");
                 return Optional.empty();
             }
 
             if (rows.size() > 1) {
-                System.out.println("More than 1 active ban found for player '" + player + "' with type '" + type + "'");
                 return Optional.empty();
             }
 
@@ -204,7 +195,6 @@ public class DefaultBanRepository implements BanRepository {
         return mySQL.query(query, player.toString(), type.toString()).thenApply(result -> {
             List<DBRow> rows = result.rows();
             if (rows.isEmpty()) {
-                System.out.println("No bans found for player '" + player + "' with type '" + type + "'");
                 return mapper.apply(Collections.emptyList());
             }
 
@@ -225,11 +215,6 @@ public class DefaultBanRepository implements BanRepository {
         });
     }
 
-    @Override
-    public @NotNull CompletableFuture<Integer> reapExpiredBans() {
-        return mySQL.update(REAP_EXPIRED_BANS_QUERY, System.currentTimeMillis());
-    }
-
     private <T> @NotNull List<T> mapBansFromRows(List<DBRow> rows, Function<DBRow, T> mapper) {
         return rows.stream()
                 .map(mapper)
@@ -243,8 +228,7 @@ public class DefaultBanRepository implements BanRepository {
                 row.getValue("templateId", String.class),
                 row.getValue("bannedBy", String.class),
                 row.getValue("bannedAt", Long.class),
-                row.getValue("expiresAt", Long.class),
-                row.getValue("active", Boolean.class)
+                row.getValue("expiresAt", Long.class)
         );
     }
 

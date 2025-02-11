@@ -31,6 +31,4 @@ public interface BanRepository {
     @NotNull CompletableFuture<BanList> getBanListByPlayer(@NotNull UUID player, @NotNull BanType type);
 
     @NotNull CompletableFuture<Optional<BanType>> getBanTypeById(int banId);
-
-    @NotNull CompletableFuture<Integer> reapExpiredBans();
 }

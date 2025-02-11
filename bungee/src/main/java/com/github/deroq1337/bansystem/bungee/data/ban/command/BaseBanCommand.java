@@ -5,7 +5,6 @@ import com.github.deroq1337.bansystem.api.BanTemplate;
 import com.github.deroq1337.bansystem.api.BanType;
 import com.github.deroq1337.bansystem.bungee.BanSystemPlugin;
 import com.github.deroq1337.bansystem.bungee.data.ban.notify.BanNotify;
-import com.github.deroq1337.bansystem.bungee.data.ban.notify.StaffNotify;
 import com.github.deroq1337.bansystem.bungee.data.ban.utils.UUIDFetcher;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -77,13 +76,13 @@ public abstract class BaseBanCommand extends Command {
                     }
 
                     BanTemplate template = optionalTemplate.get();
-                    if (template.getType() != type) {
+                    if (template.type() != type) {
                         sender.sendMessage(TextComponent.fromLegacy("§cTemplate kann nicht genutzt werden"));
                         return CompletableFuture.completedFuture(null);
                     }
 
                     long now = System.currentTimeMillis();
-                    Ban ban = new Ban(targetUuid, templateId, getBannedBy(sender), now, now + template.getDuration());
+                    Ban ban = new Ban(-1, targetUuid, templateId, getBannedBy(sender), now, now + template.duration());
 
                     return plugin.getBanManager().banUser(ban, type).thenApply(acknowledged -> {
                         if (!acknowledged) {

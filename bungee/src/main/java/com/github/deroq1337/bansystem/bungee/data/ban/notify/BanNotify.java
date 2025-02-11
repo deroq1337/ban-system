@@ -11,7 +11,7 @@ public class BanNotify implements StaffNotify {
 
     @Override
     public @NotNull String getMessage() {
-        return "§c" + ban.getPlayer().toString() + " §3wurde von §a" + ban.getBannedBy() + " §3bestraft\n" +
-                "§3Template-ID: §e" + ban.getTemplateId();
+        return "§c" + ban.player().toString() + " §3wurde von §a" + ban.bannedBy() + " §3bestraft\n" +
+                "§3Template-ID: §e" + ban.templateId();
     }
 }

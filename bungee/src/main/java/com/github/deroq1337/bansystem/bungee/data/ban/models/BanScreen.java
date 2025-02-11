@@ -16,21 +16,19 @@ public class BanScreen {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
-    private @NotNull
-    final Ban ban;
-    private @NotNull
-    final BanTemplate template;
+    private final @NotNull Ban ban;
+    private final @NotNull BanTemplate template;
 
     public @NotNull BaseComponent build() {
         return TextComponent.fromLegacy("§cDu wurdest vom Netzwerk gebannt!\n" +
-                "§3Grund: §e" + template.getReason() + "\n" +
+                "§3Grund: §e" + template.reason() + "\n" +
                 formatDuration());
     }
 
     private @NotNull String formatDuration() {
-        return template.getDuration() == Integer.MAX_VALUE
+        return template.duration() == Integer.MAX_VALUE
                 ? "§3Dauer: §4PERMANENT"
-                : "§3Bis: §e" + formatExpiry(ban.getExpiresAt());
+                : "§3Bis: §e" + formatExpiry(ban.expiresAt());
     }
 
     private @NotNull String formatExpiry(long expiresAt) {

@@ -73,7 +73,7 @@ public abstract class BaseUnbanCommand extends Command {
                         return CompletableFuture.completedFuture(null);
                     }
 
-                    Unban unban = new Unban(targetUuid, ban.get().getId(), getUnbannedBy(sender), System.currentTimeMillis());
+                    Unban unban = new Unban(targetUuid, ban.get().id(), getUnbannedBy(sender), System.currentTimeMillis());
 
                     return plugin.getBanManager().unbanUser(unban).thenApply(acknowledged -> {
                         if (!acknowledged) {

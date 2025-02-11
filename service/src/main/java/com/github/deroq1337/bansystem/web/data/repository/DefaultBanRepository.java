@@ -77,8 +77,7 @@ public class DefaultBanRepository implements BanRepository {
                 rs.getString("templateId"),
                 rs.getString("bannedBy"),
                 rs.getLong("bannedAt"),
-                rs.getLong("expiresAt"),
-                rs.getBoolean("active")
+                rs.getLong("expiresAt")
         );
     }
 

@@ -19,14 +19,14 @@ public class MuteMessage {
 
     public @NotNull BaseComponent build() {
         return TextComponent.fromLegacy("§cDu wurdest " + formatDuration() + " aus dem Chat gebannt!\n" +
-                "§3Grund: §c" + template.getReason() + "\n" +
-                "§3Verbleibend: §e" + formatMillis(ban.getExpiresAt() - System.currentTimeMillis()));
+                "§3Grund: §c" + template.reason() + "\n" +
+                "§3Verbleibend: §e" + formatMillis(ban.expiresAt() - System.currentTimeMillis()));
     }
 
     private @NotNull String formatDuration() {
-        return template.getDuration() == Integer.MAX_VALUE
+        return template.duration() == Integer.MAX_VALUE
                 ? "§4PERMANENT"
-                : "für §4" + formatMillis(template.getDuration());
+                : "für §4" + formatMillis(template.duration());
     }
 
     private @NotNull String formatMillis(long duration) {

@@ -26,7 +26,7 @@ public class DefaultBanTemplateManager implements BanTemplateManager {
                 .build(new CacheLoader<>() {
                     @Override
                     public @NotNull CompletableFuture<Optional<BanTemplate>> load(@NotNull String key) throws Exception {
-                        return getTemplateByIdFromDatabase(key);
+                        return repository.getTemplateById(key.toUpperCase());
                     }
                 });
     }
@@ -34,7 +34,7 @@ public class DefaultBanTemplateManager implements BanTemplateManager {
     @Override
     public @NotNull CompletableFuture<Boolean> createTemplate(@NotNull BanTemplate template) {
         return repository.createTemplate(template).thenApply(acknowledged -> {
-            templateCache.invalidate(template.getId());
+            templateCache.invalidate(template.id());
             return acknowledged;
         });
     }
@@ -50,10 +50,6 @@ public class DefaultBanTemplateManager implements BanTemplateManager {
     @Override
     public @NotNull CompletableFuture<Optional<BanTemplate>> getTemplateById(@NotNull String id) {
         return templateCache.getUnchecked(id);
-    }
-
-    private @NotNull CompletableFuture<Optional<BanTemplate>> getTemplateByIdFromDatabase(@NotNull String id) {
-        return repository.getTemplateById(id.toUpperCase());
     }
 
     @Override

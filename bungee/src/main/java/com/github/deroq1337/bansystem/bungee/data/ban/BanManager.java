@@ -14,8 +14,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface BanManager {
 
-    void stopExpiredBanReaper();
-
     @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull BanType type);
 
     @NotNull CompletableFuture<Boolean> unbanUser(@NotNull Unban unban);

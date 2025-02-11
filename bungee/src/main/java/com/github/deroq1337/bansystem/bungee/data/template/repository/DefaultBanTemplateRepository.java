@@ -30,10 +30,11 @@ public class DefaultBanTemplateRepository implements BanTemplateRepository {
 
     public DefaultBanTemplateRepository(@NotNull BanSystemPlugin plugin) {
         this.mySQL = plugin.getMySQL();
-        createTables();
+
+        createTable();
     }
 
-    private void createTables() {
+    private void createTable() {
         mySQL.update("CREATE TABLE IF NOT EXISTS bansystem_templates(" +
                 "id VARCHAR(8) NOT NULL, " +
                 "type VARCHAR(32) NOT NULL, " +
@@ -45,13 +46,14 @@ public class DefaultBanTemplateRepository implements BanTemplateRepository {
 
     @Override
     public @NotNull CompletableFuture<Boolean> createTemplate(@NotNull BanTemplate template) {
-        return mySQL.update(CREATE_TEMPLATE_QUERY, template.getId(), template.getType().toString(), template.getReason(), template.getDuration())
+        return mySQL.update(CREATE_TEMPLATE_QUERY, template.id(), template.type().toString(), template.reason(), template.duration())
                 .thenApply(count -> count == 1);
     }
 
     @Override
     public @NotNull CompletableFuture<Boolean> deleteTemplateById(@NotNull String templateId) {
-        return mySQL.update(DELETE_TEMPLATE_QUERY, templateId).thenApply(count -> count == 1);
+        return mySQL.update(DELETE_TEMPLATE_QUERY, templateId)
+                .thenApply(count -> count == 1);
     }
 
     @Override
@@ -62,12 +64,7 @@ public class DefaultBanTemplateRepository implements BanTemplateRepository {
             }
 
             DBRow row = result.rows().getFirst();
-            return Optional.of(new BanTemplate(
-                    row.getValue("id", String.class),
-                    BanType.valueOf(row.getValue("type", String.class)),
-                    row.getValue("reason", String.class),
-                    row.getValue("duration", Long.class)
-            ));
+            return Optional.of(mapTemplateFromRow(row));
         });
     }
 

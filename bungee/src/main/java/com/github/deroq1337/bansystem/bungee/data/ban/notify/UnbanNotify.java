@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
-public class UnbanNotify implements StaffNotify {
+public class UnbanNotify extends StaffNotify {
 
     private final @NotNull Unban unban;
 

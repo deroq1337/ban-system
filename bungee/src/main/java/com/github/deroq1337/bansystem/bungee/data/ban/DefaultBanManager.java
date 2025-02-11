@@ -41,7 +41,7 @@ public class DefaultBanManager implements BanManager {
                 .build(new CacheLoader<>() {
                     @Override
                     public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) {
-                        return getBanByPlayerFromDatabase(key, BanType.BAN);
+                        return repository.getBanByPlayer(key, BanType.BAN);
                     }
                 }));
 
@@ -50,7 +50,7 @@ public class DefaultBanManager implements BanManager {
                 .build(new CacheLoader<>() {
                     @Override
                     public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) {
-                        return getBanByPlayerFromDatabase(key, BanType.MUTE);
+                        return repository.getBanByPlayer(key, BanType.MUTE);
                     }
                 }));
     }
@@ -108,10 +108,6 @@ public class DefaultBanManager implements BanManager {
     @Override
     public @NotNull CompletableFuture<Optional<Ban>> getBanByPlayer(@NotNull UUID player, @NotNull BanType type) {
         return getCache(type).getUnchecked(player);
-    }
-
-    private @NotNull CompletableFuture<Optional<Ban>> getBanByPlayerFromDatabase(@NotNull UUID player, @NotNull BanType type) {
-        return repository.getBanByPlayer(player, type);
     }
 
     @Override

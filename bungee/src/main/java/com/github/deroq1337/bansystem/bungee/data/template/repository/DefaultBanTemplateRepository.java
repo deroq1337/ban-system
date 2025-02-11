@@ -25,8 +25,7 @@ public class DefaultBanTemplateRepository implements BanTemplateRepository {
 
     private static final String GET_ALL_TEMPLATES_QUERY = "SELECT * FROM bansystem_templates;";
 
-    private @NotNull
-    final MySQL mySQL;
+    private final @NotNull MySQL mySQL;
 
     public DefaultBanTemplateRepository(@NotNull BanSystemPlugin plugin) {
         this.mySQL = plugin.getMySQL();

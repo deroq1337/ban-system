@@ -9,6 +9,7 @@ import java.util.Optional;
 public class Prometheus {
 
     private final @NotNull Thread thread;
+    
     private Optional<HTTPServer> httpServer = Optional.empty();
 
     public Prometheus() {

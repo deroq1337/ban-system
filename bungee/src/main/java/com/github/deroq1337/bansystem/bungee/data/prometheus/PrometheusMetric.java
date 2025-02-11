@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class PrometheusMetric {
 
-    public CompletableFuture<Void> export(String... labelValues) {
+    public @NotNull CompletableFuture<Void> export(String... labelValues) {
         return CompletableFuture.runAsync(() -> {
             if (labelValues.length != getLabelNames().size()) {
                 throw new IllegalStateException("Error exporting metric " + getClass() + ": labelValues length is not equal to labelNames size");

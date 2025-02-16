@@ -30,7 +30,7 @@ public class UnbanMessageConsumer implements DeliverCallback {
             throw new MalformedUnbanMessageException("Received invalid unban message: " + message);
         }
 
-        banManager.unbanUserById(banId, "WEB_INTERFACE").thenAccept(banType -> {
+        banManager.unbanUserById(banId, "WEB_INTERFACE").thenRun(() -> {
             System.out.println("Unbanned user via webinterface: " + banId);
         });
     }

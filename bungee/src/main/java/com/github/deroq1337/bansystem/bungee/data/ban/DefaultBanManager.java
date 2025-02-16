@@ -57,10 +57,13 @@ public class DefaultBanManager implements BanManager {
 
     @Override
     public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull BanType type) {
-        return repository.banUser(ban).thenApply(acknowledged -> {
-            banMetric.export(ban.player().toString(), ban.templateId(), ban.bannedBy(), type.toString());
+        return repository.banUser(ban).thenCompose(acknowledged -> {
             getCache(type).invalidate(ban.player());
-            return acknowledged;
+
+            return banMetric.export(ban.player().toString(), ban.templateId(), ban.bannedBy(), type.toString()).exceptionally(t -> {
+                System.err.println("Error exporting ban metric: " + t);
+                return null;
+            }).thenApply(v -> acknowledged);
         }).exceptionally(t -> {
             System.err.println("Error banning user: " + t);
             return false;
@@ -69,15 +72,14 @@ public class DefaultBanManager implements BanManager {
 
     @Override
     public @NotNull CompletableFuture<Boolean> unbanUser(@NotNull Unban unban) {
-        return repository.unbanUser(unban).thenApply(banType -> {
-            if (banType.isEmpty()) {
-                throw new EmptyBanTypeException("Error unbanning user: banType is empty");
-            }
-
-            return banType.map(type -> {
-                unbanMetric.export(unban.player().toString(), unban.unbannedBy(), type.toString());
+        return repository.unbanUser(unban).thenCompose(optionalBanType -> {
+            return optionalBanType.map(type -> {
                 getCache(type).invalidate(unban.player());
-                return true;
+
+                return unbanMetric.export(unban.player().toString(), unban.unbannedBy(), type.toString()).exceptionally(t -> {
+                    System.err.println("Error exporting unban metric: " + t);
+                    return null;
+                }).thenApply(v -> true);
             }).orElseThrow(() -> new EmptyBanTypeException("Warning on unbanUser: banType is empty"));
         }).exceptionally(t -> {
             System.err.println("Error unbanning user: " + t);
@@ -91,6 +93,7 @@ public class DefaultBanManager implements BanManager {
             Unban unban = optionalBan
                     .map(ban -> new Unban(ban.player(), banId, unbannedBy, System.currentTimeMillis()))
                     .orElseThrow(() -> new BanNotFoundException("Could not unban user by banId: Ban with id '" + banId + "' was not found"));
+
             return unbanUser(unban);
         });
     }

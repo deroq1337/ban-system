@@ -18,13 +18,11 @@ public class DefaultBanRepository implements BanRepository {
 
     private static final String BAN_QUERY = "INSERT INTO bansystem_bans" +
             "(player, templateId, bannedBy, bannedAt, expiresAt) " +
-            "VALUES" +
-            "(?, ?, ?, ?, ?);";
+            "VALUES(?, ?, ?, ?, ?);";
 
     private static final String UNBAN_INSERT_QUERY = "INSERT INTO bansystem_unbans" +
             "(player, banId, unbannedBy, unbannedAt) " +
-            "VALUES" +
-            "(?, ?, ?, ?);";
+            "VALUES(?, ?, ?, ?);";
 
     private static final String IS_BANNED_QUERY = "SELECT bb.id, bt.type " +
             "FROM bansystem_bans bb " +

@@ -45,18 +45,16 @@ public class DefaultBanRepository implements BanRepository {
 
     @Override
     public Optional<Ban> findById(@NotNull Integer id) {
-        return Optional.of(jdbcTemplate.query(FIND_BY_ID_QUERY, banFromRow(), id))
-                .flatMap(bans -> bans.isEmpty()
-                        ? Optional.empty()
-                        : Optional.ofNullable(bans.getFirst()));
+        return Optional.of(jdbcTemplate.query(FIND_BY_ID_QUERY, banFromRow(), id)).flatMap(bans -> bans.isEmpty()
+                ? Optional.empty()
+                : Optional.ofNullable(bans.getFirst()));
     }
 
     @Override
     public Optional<BanListEntry> findByIdAsListEntry(@NotNull Integer id) {
-        return Optional.of(jdbcTemplate.query(FIND_BY_ID_AS_ENTRY_QUERY, listEntryFromRow(), id))
-                .flatMap(bans -> bans.isEmpty()
-                        ? Optional.empty()
-                        : Optional.ofNullable(bans.getFirst()));
+        return Optional.of(jdbcTemplate.query(FIND_BY_ID_AS_ENTRY_QUERY, listEntryFromRow(), id)).flatMap(bans -> bans.isEmpty()
+                ? Optional.empty()
+                : Optional.ofNullable(bans.getFirst()));
     }
 
     @Override
@@ -67,6 +65,7 @@ public class DefaultBanRepository implements BanRepository {
         List<Ban> bans = jdbcTemplate.query(FIND_ALL_QUERY, banFromRow(), type.orElse("BAN"), limit, offset);
         int total = Optional.ofNullable(jdbcTemplate.queryForObject(COUNT_QUERY, Integer.class))
                 .orElseThrow(() -> new RuntimeException("Could not fetch total count"));
+
         return new PageImpl<>(bans, pageable, total);
     }
 
@@ -89,7 +88,6 @@ public class DefaultBanRepository implements BanRepository {
                 rs.getString("bannedBy"),
                 rs.getLong("bannedAt"),
                 rs.getLong("expiresAt"),
-                rs.getBoolean("active"),
                 rs.getString("reason")
         );
     }

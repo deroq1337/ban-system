@@ -1,6 +1,6 @@
 package com.github.deroq1337.bansystem.web.data.exception.handlers;
 
-import com.github.deroq1337.bansystem.web.data.exception.ExceptionResponse;
+import com.github.deroq1337.bansystem.web.data.exception.models.ExceptionResponse;
 import com.github.deroq1337.bansystem.web.data.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;

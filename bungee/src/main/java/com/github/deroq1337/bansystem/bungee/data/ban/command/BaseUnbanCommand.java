@@ -75,15 +75,15 @@ public abstract class BaseUnbanCommand extends Command {
 
                     Unban unban = new Unban(targetUuid, ban.get().id(), getUnbannedBy(sender), System.currentTimeMillis());
 
-                    return plugin.getBanManager().unbanUser(unban).thenApply(acknowledged -> {
+                    return plugin.getBanManager().unbanUser(unban).thenAccept(acknowledged -> {
                         if (!acknowledged) {
                             sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht aufgehoben werden. Versuche es erneut oder kontaktiere einen Administrator"));
-                            return null;
+                            return;
                         }
 
                         new UnbanNotify(unban).broadcast();
                         sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde aufgehoben"));
-                        return null;
+                        return;
                     });
                 });
             });

@@ -1,4 +1,4 @@
-package com.github.deroq1337.bansystem.web.data.exception;
+package com.github.deroq1337.bansystem.web.data.exception.models;
 
 import lombok.*;
 import org.jetbrains.annotations.NotNull;

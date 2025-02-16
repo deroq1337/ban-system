@@ -84,17 +84,15 @@ public abstract class BaseBanCommand extends Command {
                     long now = System.currentTimeMillis();
                     Ban ban = new Ban(-1, targetUuid, templateId, getBannedBy(sender), now, now + template.duration());
 
-                    return plugin.getBanManager().banUser(ban, type).thenApply(acknowledged -> {
+                    return plugin.getBanManager().banUser(ban, type).thenAccept(acknowledged -> {
                         if (!acknowledged) {
                             sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht erstellt werden. Versuche es erneut oder kontaktiere einen Administrator"));
-                            return null;
+                            return;
                         }
 
                         onSuccess(targetUuid, ban, template);
-                        new BanNotify(ban).broadcast();
-
                         sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde erstellt"));
-                        return null;
+                        new BanNotify(ban).broadcast();
                     });
                 });
             });

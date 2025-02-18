@@ -44,20 +44,20 @@ public class DefaultBanTemplateRepository implements BanTemplateRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Boolean> createTemplate(@NotNull BanTemplate template) {
+    public @NotNull CompletableFuture<Boolean> create(@NotNull BanTemplate template) {
         return mySQL.update(CREATE_TEMPLATE_QUERY, template.id(), template.type().toString(), template.reason(), template.duration())
                 .thenApply(count -> count == 1);
     }
 
     @Override
-    public @NotNull CompletableFuture<Boolean> deleteTemplateById(@NotNull String templateId) {
-        return mySQL.update(DELETE_TEMPLATE_QUERY, templateId)
+    public @NotNull CompletableFuture<Boolean> deleteById(@NotNull String id) {
+        return mySQL.update(DELETE_TEMPLATE_QUERY, id)
                 .thenApply(count -> count == 1);
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<BanTemplate>> getTemplateById(@NotNull String templateId) {
-        return mySQL.query(GET_TEMPLATE_QUERY, templateId).thenApply(result -> {
+    public @NotNull CompletableFuture<Optional<BanTemplate>> findById(@NotNull String id) {
+        return mySQL.query(GET_TEMPLATE_QUERY, id).thenApply(result -> {
             if (result.rows().isEmpty()) {
                 return Optional.empty();
             }
@@ -68,7 +68,7 @@ public class DefaultBanTemplateRepository implements BanTemplateRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<List<BanTemplate>> getTemplates() {
+    public @NotNull CompletableFuture<List<BanTemplate>> listAll() {
         return mySQL.query(GET_ALL_TEMPLATES_QUERY).thenApply(result -> result.rows().stream()
                 .map(this::mapTemplateFromRow)
                 .toList());

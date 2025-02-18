@@ -51,7 +51,7 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public Optional<BanListEntry> findByIdAsListEntry(@NotNull Integer id) {
+    public Optional<BanListEntry> findByIdAsBanListEntry(@NotNull Integer id) {
         return Optional.of(jdbcTemplate.query(FIND_BY_ID_AS_ENTRY_QUERY, listEntryFromRow(), id)).flatMap(bans -> bans.isEmpty()
                 ? Optional.empty()
                 : Optional.ofNullable(bans.getFirst()));

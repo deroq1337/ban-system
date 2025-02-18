@@ -19,7 +19,7 @@ public class LoginListener implements Listener {
 
     @EventHandler
     public void onLogin(LoginEvent event) {
-        plugin.getBanManager().getBanByPlayer(event.getConnection().getUniqueId(), BanType.BAN).thenCompose(optionalBan -> {
+        plugin.getBanManager().getBanByPlayerAndType(event.getConnection().getUniqueId(), BanType.BAN).thenCompose(optionalBan -> {
             return optionalBan.map(ban -> {
                 return plugin.getTemplateManager().getTemplateById(ban.templateId()).thenAccept(optionalTemplate -> {
                     optionalTemplate.ifPresentOrElse(template -> {

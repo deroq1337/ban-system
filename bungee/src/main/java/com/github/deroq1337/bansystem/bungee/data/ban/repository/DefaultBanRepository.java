@@ -106,26 +106,31 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban) {
+    public @NotNull CompletableFuture<Boolean> create(@NotNull Ban ban) {
         return mySQL.update(BAN_QUERY, ban.player().toString(), ban.templateId(), ban.bannedBy(), ban.bannedAt(), ban.expiresAt())
                 .thenApply(count -> count == 1);
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Boolean> deleteById(@NotNull Integer integer) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull CompletableFuture<Optional<BanType>> unbanUser(@NotNull Unban unban) {
         int banId = unban.banId();
         return mySQL.update(UNBAN_INSERT_QUERY, unban.player().toString(), banId, unban.unbannedBy(), unban.unbannedAt())
-                .thenCompose(v -> getBanTypeById(banId));
+                .thenCompose(v -> findTypeOfBanById(banId));
     }
 
     @Override
-    public @NotNull CompletableFuture<Boolean> isUserBanned(@NotNull UUID player, @NotNull BanType type) {
+    public @NotNull CompletableFuture<Boolean> existsBanByPlayerAndType(@NotNull UUID player, @NotNull BanType type) {
         return mySQL.query(IS_BANNED_QUERY, player.toString(), type.toString()).thenApply(result -> result.rows().size() == 1);
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<Ban>> getBanById(int banId) {
-        return mySQL.query(GET_BAN_BY_ID_QUERY, banId).thenApply(result -> {
+    public @NotNull CompletableFuture<Optional<Ban>> findById(@NotNull Integer id) {
+        return mySQL.query(GET_BAN_BY_ID_QUERY, id).thenApply(result -> {
             if (result.rows().isEmpty()) {
                 return Optional.empty();
             }
@@ -139,12 +144,22 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<Ban>> getBanByPlayer(@NotNull UUID player, @NotNull BanType type) {
-        return getBanFromQuery(player, type, this::banFromRow, GET_BAN_BY_PLAYER_QUERY);
+    public @NotNull CompletableFuture<List<Ban>> listAll() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public @NotNull CompletableFuture<List<Ban>> getBansByPlayer(@NotNull UUID player, @NotNull BanType type) {
+    public @NotNull CompletableFuture<Optional<Ban>> findByPlayerAndType(@NotNull UUID player, @NotNull BanType type) {
+        return getBanFromQuery(
+                player,
+                type,
+                this::banFromRow,
+                GET_BAN_BY_PLAYER_QUERY
+        );
+    }
+
+    @Override
+    public @NotNull CompletableFuture<List<Ban>> listByPlayerAndType(@NotNull UUID player, @NotNull BanType type) {
         return getBansFromQuery(
                 player,
                 type,
@@ -154,17 +169,23 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<BanListEntry>> getBanByPlayerAsListEntry(@NotNull UUID player, @NotNull BanType type) {
-        return getBanFromQuery(player, type, this::listEntryFromRow, GET_BAN_ENTRY_QUERY);
+    public @NotNull CompletableFuture<Optional<BanListEntry>> findByPlayerAndTypeAsBanListEntry(@NotNull UUID player, @NotNull BanType type) {
+        return getBanFromQuery(
+                player,
+                type,
+                this::listEntryFromRow,
+                GET_BAN_ENTRY_QUERY
+        );
     }
 
     @Override
-    public @NotNull CompletableFuture<BanList> getBanListByPlayer(@NotNull UUID player, @NotNull BanType type) {
+    public @NotNull CompletableFuture<BanList> findByPlayerAndTypeAsBanList(@NotNull UUID player, @NotNull BanType type) {
         return getBansFromQuery(
                 player,
                 type,
                 rows -> new BanList(player, mapBansFromRows(rows, this::listEntryFromRow)),
-                GET_BAN_ENTRIES_QUERY);
+                GET_BAN_ENTRIES_QUERY
+        );
     }
 
     private <T> CompletableFuture<Optional<T>> getBanFromQuery(
@@ -201,10 +222,9 @@ public class DefaultBanRepository implements BanRepository {
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<BanType>> getBanTypeById(int banId) {
+    public @NotNull CompletableFuture<Optional<BanType>> findTypeOfBanById(Integer banId) {
         return mySQL.query(GET_BAN_TYPE_QUERY, banId).thenApply(result -> {
             if (result.rows().isEmpty()) {
-                System.out.println("Type for ban '" + banId + "' not found");
                 return Optional.empty();
             }
 

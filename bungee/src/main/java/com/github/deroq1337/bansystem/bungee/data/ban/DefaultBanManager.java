@@ -41,7 +41,7 @@ public class DefaultBanManager implements BanManager {
                 .build(new CacheLoader<>() {
                     @Override
                     public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) {
-                        return repository.getBanByPlayer(key, BanType.BAN);
+                        return repository.findByPlayerAndType(key, BanType.BAN);
                     }
                 }));
 
@@ -50,14 +50,14 @@ public class DefaultBanManager implements BanManager {
                 .build(new CacheLoader<>() {
                     @Override
                     public @NotNull CompletableFuture<Optional<Ban>> load(@NotNull UUID key) {
-                        return repository.getBanByPlayer(key, BanType.MUTE);
+                        return repository.findByPlayerAndType(key, BanType.MUTE);
                     }
                 }));
     }
 
     @Override
     public @NotNull CompletableFuture<Boolean> banUser(@NotNull Ban ban, @NotNull BanType type) {
-        return repository.banUser(ban).thenCompose(acknowledged -> {
+        return repository.create(ban).thenCompose(acknowledged -> {
             getCache(type).invalidate(ban.player());
 
             return banMetric.export(ban.player().toString(), ban.templateId(), ban.bannedBy(), type.toString()).exceptionally(t -> {
@@ -88,7 +88,7 @@ public class DefaultBanManager implements BanManager {
     }
 
     @Override
-    public @NotNull CompletableFuture<Boolean> unbanUserById(int banId, @NotNull String unbannedBy) {
+    public @NotNull CompletableFuture<Boolean> unbanUserByBanId(int banId, @NotNull String unbannedBy) {
         return getBanById(banId).thenCompose(optionalBan -> {
             Unban unban = optionalBan
                     .map(ban -> new Unban(ban.player(), banId, unbannedBy, System.currentTimeMillis()))
@@ -100,32 +100,32 @@ public class DefaultBanManager implements BanManager {
 
     @Override
     public @NotNull CompletableFuture<Boolean> isUserBanned(@NotNull UUID player, @NotNull BanType type) {
-        return repository.isUserBanned(player, type);
+        return repository.existsBanByPlayerAndType(player, type);
     }
 
     @Override
     public @NotNull CompletableFuture<Optional<Ban>> getBanById(int banId) {
-        return repository.getBanById(banId);
+        return repository.findById(banId);
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<Ban>> getBanByPlayer(@NotNull UUID player, @NotNull BanType type) {
+    public @NotNull CompletableFuture<Optional<Ban>> getBanByPlayerAndType(@NotNull UUID player, @NotNull BanType type) {
         return getCache(type).getUnchecked(player);
     }
 
     @Override
-    public @NotNull CompletableFuture<List<Ban>> getBansByPlayer(@NotNull UUID player, @NotNull BanType type) {
-        return repository.getBansByPlayer(player, type);
+    public @NotNull CompletableFuture<List<Ban>> getBansByPlayerAndType(@NotNull UUID player, @NotNull BanType type) {
+        return repository.listByPlayerAndType(player, type);
     }
 
     @Override
-    public @NotNull CompletableFuture<Optional<BanListEntry>> getBanByPlayerAsListEntry(@NotNull UUID player, @NotNull BanType type) {
-        return repository.getBanByPlayerAsListEntry(player, type);
+    public @NotNull CompletableFuture<Optional<BanListEntry>> getBanListEntryByPlayerAndType(@NotNull UUID player, @NotNull BanType type) {
+        return repository.findByPlayerAndTypeAsBanListEntry(player, type);
     }
 
     @Override
-    public @NotNull CompletableFuture<BanList> getBanListByPlayer(@NotNull UUID player, @NotNull BanType type) {
-        return repository.getBanListByPlayer(player, type);
+    public @NotNull CompletableFuture<BanList> getBanListByPlayerAndType(@NotNull UUID player, @NotNull BanType type) {
+        return repository.findByPlayerAndTypeAsBanList(player, type);
     }
 
     private @NotNull LoadingCache<UUID, CompletableFuture<Optional<Ban>>> getCache(@NotNull BanType type) {

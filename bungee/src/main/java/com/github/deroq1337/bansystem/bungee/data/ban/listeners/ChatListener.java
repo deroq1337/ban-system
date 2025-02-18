@@ -24,7 +24,7 @@ public class ChatListener implements Listener {
             return;
         }
 
-        plugin.getBanManager().getBanByPlayer(player.getUniqueId(), BanType.MUTE).thenCompose(optionalBan -> {
+        plugin.getBanManager().getBanByPlayerAndType(player.getUniqueId(), BanType.MUTE).thenCompose(optionalBan -> {
             return optionalBan.map(ban -> plugin.getTemplateManager().getTemplateById(optionalBan.get().templateId()).thenAccept(optionalTemplate -> {
                 optionalTemplate.ifPresentOrElse(template -> {
                     event.setCancelled(true);

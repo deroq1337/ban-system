@@ -51,50 +51,48 @@ public abstract class BaseBanCommand extends Command {
         }
 
         UUIDFetcher.getUuid(targetName).thenCompose(optionalUuid -> {
-            if (optionalUuid.isEmpty()) {
-                sender.sendMessage(TextComponent.fromLegacy("§cUUID konnte nicht gefetched werden"));
-                return CompletableFuture.completedFuture(null);
-            }
-
-            UUID targetUuid = optionalUuid.get();
-            if (sender instanceof ProxiedPlayer
-                    && ((ProxiedPlayer) sender).getUniqueId().equals(targetUuid)) {
-                sender.sendMessage(TextComponent.fromLegacy("§cDu kannst dich nicht selber bestrafen"));
-                return CompletableFuture.completedFuture(null);
-            }
-
-            return plugin.getBanManager().isUserBanned(targetUuid, type).thenCompose(banned -> {
-                if (banned) {
-                    sender.sendMessage(TextComponent.fromLegacy("§cDieser Spieler wurde bereits bestraft"));
+            return optionalUuid.map(targetUuid -> {
+                if (sender instanceof ProxiedPlayer
+                        && ((ProxiedPlayer) sender).getUniqueId().equals(targetUuid)) {
+                    sender.sendMessage(TextComponent.fromLegacy("§cDu kannst dich nicht selber bestrafen"));
                     return CompletableFuture.completedFuture(null);
                 }
 
-                return plugin.getTemplateManager().getTemplateById(templateId).thenCompose(optionalTemplate -> {
-                    if (optionalTemplate.isEmpty()) {
-                        sender.sendMessage(TextComponent.fromLegacy("§cTemplate nicht gefunden"));
+                return plugin.getBanManager().isUserBanned(targetUuid, type).thenCompose(banned -> {
+                    if (banned) {
+                        sender.sendMessage(TextComponent.fromLegacy("§cDieser Spieler wurde bereits bestraft"));
                         return CompletableFuture.completedFuture(null);
                     }
 
-                    BanTemplate template = optionalTemplate.get();
-                    if (template.type() != type) {
-                        sender.sendMessage(TextComponent.fromLegacy("§cTemplate kann nicht genutzt werden"));
-                        return CompletableFuture.completedFuture(null);
-                    }
+                    return plugin.getTemplateManager().getTemplateById(templateId).thenCompose(optionalTemplate -> {
+                        return optionalTemplate.map(template -> {
+                            if (template.type() != type) {
+                                sender.sendMessage(TextComponent.fromLegacy("§cTemplate kann nicht genutzt werden"));
+                                return CompletableFuture.completedFuture(null);
+                            }
 
-                    long now = System.currentTimeMillis();
-                    Ban ban = new Ban(-1, targetUuid, templateId, getBannedBy(sender), now, now + template.duration());
+                            long now = System.currentTimeMillis();
+                            Ban ban = new Ban(-1, targetUuid, templateId, getBannedBy(sender), now, now + template.duration());
 
-                    return plugin.getBanManager().banUser(ban, type).thenAccept(acknowledged -> {
-                        if (!acknowledged) {
-                            sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht erstellt werden. Versuche es erneut oder kontaktiere einen Administrator"));
-                            return;
-                        }
+                            return plugin.getBanManager().banUser(ban, type).thenAccept(acknowledged -> {
+                                if (!acknowledged) {
+                                    sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht erstellt werden. Versuche es erneut oder kontaktiere einen Administrator"));
+                                    return;
+                                }
 
-                        onSuccess(targetUuid, ban, template);
-                        sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde erstellt"));
-                        new BanNotify(ban).broadcast();
+                                onSuccess(targetUuid, ban, template);
+                                sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde erstellt"));
+                                new BanNotify(ban).broadcast();
+                            });
+                        }).orElseGet(() -> {
+                            sender.sendMessage(TextComponent.fromLegacy("§cTemplate nicht gefunden"));
+                            return CompletableFuture.completedFuture(null);
+                        });
                     });
                 });
+            }).orElseGet(() -> {
+                sender.sendMessage(TextComponent.fromLegacy("§cUUID konnte nicht gefetched werden"));
+                return CompletableFuture.completedFuture(null);
             });
         }).exceptionally(t -> {
             t.printStackTrace();

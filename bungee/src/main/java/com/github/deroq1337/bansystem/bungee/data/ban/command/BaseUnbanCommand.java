@@ -11,7 +11,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class BaseUnbanCommand extends Command {
@@ -49,43 +48,41 @@ public abstract class BaseUnbanCommand extends Command {
         }
 
         UUIDFetcher.getUuid(targetName).thenCompose(optionalUuid -> {
-            if (optionalUuid.isEmpty()) {
-                sender.sendMessage(TextComponent.fromLegacy("§cUUID konnte nicht gefetched werden"));
-                return CompletableFuture.completedFuture(null);
-            }
-
-            UUID targetUuid = optionalUuid.get();
-            if (sender instanceof ProxiedPlayer
-                    && ((ProxiedPlayer) sender).getUniqueId().equals(targetUuid)) {
-                sender.sendMessage(TextComponent.fromLegacy("§cDu kannst nicht mit dir selber interagieren"));
-                return CompletableFuture.completedFuture(null);
-            }
-
-            return plugin.getBanManager().isUserBanned(targetUuid, type).thenCompose(banned -> {
-                if (!banned) {
-                    sender.sendMessage(TextComponent.fromLegacy("§cFür diesen Spieler liegt aktuell keine Strafe vor"));
+            return optionalUuid.map(targetUuid -> {
+                if (sender instanceof ProxiedPlayer
+                        && ((ProxiedPlayer) sender).getUniqueId().equals(targetUuid)) {
+                    sender.sendMessage(TextComponent.fromLegacy("§cDu kannst nicht mit dir selber interagieren"));
                     return CompletableFuture.completedFuture(null);
                 }
 
-                return plugin.getBanManager().getBanByPlayer(targetUuid, type).thenCompose(ban -> {
-                    if (ban.isEmpty()) {
-                        sender.sendMessage(TextComponent.fromLegacy("§cEs konnte keine Strafe für diesen Spieler gefunden werden"));
+                return plugin.getBanManager().isUserBanned(targetUuid, type).thenCompose(banned -> {
+                    if (!banned) {
+                        sender.sendMessage(TextComponent.fromLegacy("§cFür diesen Spieler liegt aktuell keine Strafe vor"));
                         return CompletableFuture.completedFuture(null);
                     }
 
-                    Unban unban = new Unban(targetUuid, ban.get().id(), getUnbannedBy(sender), System.currentTimeMillis());
+                    return plugin.getBanManager().getBanByPlayerAndType(targetUuid, type).thenCompose(optionalBan -> {
+                        return optionalBan.map(ban -> {
+                            Unban unban = new Unban(targetUuid, ban.id(), getUnbannedBy(sender), System.currentTimeMillis());
 
-                    return plugin.getBanManager().unbanUser(unban).thenAccept(acknowledged -> {
-                        if (!acknowledged) {
-                            sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht aufgehoben werden. Versuche es erneut oder kontaktiere einen Administrator"));
-                            return;
-                        }
+                            return plugin.getBanManager().unbanUser(unban).thenAccept(acknowledged -> {
+                                if (!acknowledged) {
+                                    sender.sendMessage(TextComponent.fromLegacy("§cStrafe konnte nicht aufgehoben werden. Versuche es erneut oder kontaktiere einen Administrator"));
+                                    return;
+                                }
 
-                        new UnbanNotify(unban).broadcast();
-                        sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde aufgehoben"));
-                        return;
+                                new UnbanNotify(unban).broadcast();
+                                sender.sendMessage(TextComponent.fromLegacy("§aStrafe wurde aufgehoben"));
+                            });
+                        }).orElseGet(() -> {
+                            sender.sendMessage(TextComponent.fromLegacy("§cEs konnte keine Strafe für diesen Spieler gefunden werden"));
+                            return CompletableFuture.completedFuture(null);
+                        });
                     });
                 });
+            }).orElseGet(() -> {
+                sender.sendMessage(TextComponent.fromLegacy("§cUUID konnte nicht gefetched werden"));
+                return CompletableFuture.completedFuture(null);
             });
         }).exceptionally(t -> {
             t.printStackTrace();

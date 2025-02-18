@@ -12,7 +12,7 @@ public interface BanRepository {
 
     Optional<Ban> findById(@NotNull Integer id);
 
-    Optional<BanListEntry> findByIdAsListEntry(@NotNull Integer id);
+    Optional<BanListEntry> findByIdAsBanListEntry(@NotNull Integer id);
 
     @NotNull Page<Ban> findAll(Optional<String> type, @NotNull Pageable pageable);
 }
